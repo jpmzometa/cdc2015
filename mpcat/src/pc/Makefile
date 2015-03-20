@@ -83,7 +83,7 @@ DLIBS = -lm
 #
 
 # List all user C define here, like -D_DEBUG=1
-UDEFS =
+UDEFS = -DPC_TEST
 
 ifeq ($(MPCCTL_SYSTEM),$(AIRCRAFT))
 	UDEFS += -DAIRCRAFT

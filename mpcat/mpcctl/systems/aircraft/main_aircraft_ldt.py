@@ -11,7 +11,7 @@ from pudb import set_trace
 
 from muaompc.ldt import setup_mpc_problem
 
-install = 0
+install = 1
 
 def _install():
     prefix='aircraftpce'

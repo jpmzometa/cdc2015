@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import struct 
 
@@ -15,7 +15,7 @@ aircraft = System(5, 10, 40)
 gtcar1 = System(3, 10, 800)
 #ystem = aircraft
 #ystem = legoarm
-system = gtcar1
+system = aircraft 
 #path.append('../mpcctl/systems/' + SYSTEM)
 
 infoWriter = csv.writer(open('simdata.csv', 'w', newline=''), quoting=csv.QUOTE_MINIMAL)

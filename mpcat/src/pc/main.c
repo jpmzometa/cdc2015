@@ -6,12 +6,15 @@
 #include <sys/time.h>
 
 #include <mpcctl.h>
+#include <aircraftpcecvp.h>
+#include <aircraftpcecvpdata.h>
 #include "pce.h"
 
 /* current states of the simulated system */
 #ifdef AIRCRAFT
+struct aircraftpce_cvp cvp;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
-enum {SIM_POINTS = 1};  /* this should match the value in rs.py */
+enum {SIM_POINTS = 2};  /* this should match the value in rs.py */
 #endif
 
 real_t inputs[MPC_HOR_INPUTS];
@@ -33,21 +36,14 @@ uint64_t get_time_stamp(void) {
 int main(void)
 {
   int i;
-  uint64_t t0, t1, dt;
   real_t mtx[] = {1., 0., 0., 1., 10., 1};
   real_t vec[] = {4., 9.};
   real_t out[3];
+aircraftpce_initialize_problem_structure(&cvp);
 
-  pce_sqrt(out, mtx, vec, 3, 2);
+  while (1) {
 
-  for (i=0; i<3; i++) {
-    printf("out[%d]= %f; ", i, out[i]);
-    printf("\n");
-  }
-
-  while (0) {
-
-    dt = mpcctl();
+    mpcctl();
     if(k<SIM_POINTS)
     {
       for(i=0;i<MPC_STATES;i++)
@@ -61,8 +57,14 @@ int main(void)
       for (i=0; i<MPC_STATES;i++) {
       printf("x[%d]: %f ,", i,  mpc_save[k].states[i]);
       }
-      printf("dt: %lu \n", dt);
     k++;
+  pce_sqrt(out, mtx, vec, 3, 2);
+
+  for (i=0; i<3; i++) {
+    printf("out[%d]= %f; ", i, out[i]);
+    printf("\n");
+  }
+
 
   }
 

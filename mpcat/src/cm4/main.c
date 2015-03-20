@@ -18,11 +18,12 @@
 #include <usertimer.h>
 #include <blinkout.h>
 #include <mpcctl.h>
-#include <math.h>
+#include <aircraftpcecvp.h>
+#include <aircraftpcecvpdata.h>
 
 #define MPC_Thread_Space 1020
 #define Com_Thread_Space 1028
-#define MPC_Thread_Deadline 100 /* milliseconds */
+#define MPC_Thread_Deadline 500 /* milliseconds */
 //#define USER_BOTTOM /* uncomment to enable the function of user bottom */
 static WORKING_AREA(waThreadMpc, MPC_Thread_Space);
 static WORKING_AREA(waThreadCom, Com_Thread_Space);
@@ -31,16 +32,11 @@ Thread* ImThread;
 
 /* current states of the emulated system */
 #ifdef AIRCRAFT
+struct aircraftpce_cvp cvp;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
-enum {SIM_POINTS = 1};  /* this should match the value in rs.py */
+enum {SIM_POINTS = 40};  /* this should match the value in rs.py */
 #endif
-#ifdef LEGOARM
-real_t states[MPC_STATES] = {-1., 0., 1., 0.}; /* initial state */
-#endif
-#ifdef GTCAR1
-real_t states[MPC_STATES] = {0., 0., -0.6}; /* initial state */
-enum {SIM_POINTS = 100};  /* this should match the value in rs.py */
-#endif
+
 real_t inputs[MPC_HOR_INPUTS];
 int32_t k = 0;  /* simulation mark */
 
@@ -78,13 +74,12 @@ static msg_t ThreadMpc(void *arg) {
     /* send message to the print thread */
     chMsgSend(ImThread, (msg_t)MTime);
     /* save the data into RAM */
-    if(k<20)
+    if(k<SIM_POINTS)
     {
       for(i=0;i<MPC_STATES;i++)
         mpc_save[k].states[i] = states[i];
       for(i=0;i<MPC_HOR_INPUTS;i++)
         mpc_save[k].inputs[i] = inputs[i];
-      sqrt((double)k);
     }
     k++;
     chThdSleepUntil(time);
@@ -141,6 +136,7 @@ int main(void) {
   halInit();
   chSysInit();
   
+  aircraftpce_initialize_problem_structure(&cvp);
   /*
    * Activates the serial driver 2 using the driver default configuration.
    * PA2(TX) and PA3(RX) are routed to USART2.
@@ -163,6 +159,7 @@ int main(void) {
    */
   while (TRUE) {
     chThdSleepMilliseconds(500);
-    
   }
+
+  return 0;
 }

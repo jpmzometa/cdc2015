@@ -22,6 +22,6 @@
 #include <qpOASES.hpp>
 #endif
 
-uint64_t mpcctl(void);
+void mpcctl(void);
 
 #endif  /* MPCCTL_H */

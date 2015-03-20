@@ -5,7 +5,7 @@
 #define MPC_BASE_H
 #include "mc04types.h"
 
-typedef float64_t real_t; /**< Numeric type for computations.
+typedef float32_t real_t; /**< Numeric type for computations.
  * It is problem specific and defined by the automatic code generation. */
 
 
