@@ -4,10 +4,7 @@
 #include "mpcctl.h"  /* the auto-generated code */
 #include <aircraftpcecvp.h>
 #include <aircraftpcecvpdata.h>
-
-/* This file is a test of the C routines of the ALM+FGM MPC
- * algorithm. The same routines can be used in a real systems.
- */
+#include <pce.h>
 
 
 void mpcctl(void)

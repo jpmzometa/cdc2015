@@ -38,7 +38,7 @@
 #define NUM_INPUTS          1
 /* Input Port  0 */
 #define IN_PORT_0_NAME      x
-#define INPUT_0_WIDTH       5
+#define INPUT_0_WIDTH       30
 #define INPUT_DIMS_0_COL    1
 #define INPUT_0_DTYPE       real_T
 #define INPUT_0_COMPLEX     COMPLEX_NO

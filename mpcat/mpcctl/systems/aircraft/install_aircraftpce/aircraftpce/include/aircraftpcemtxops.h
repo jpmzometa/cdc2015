@@ -4,6 +4,17 @@
 #include "mc04types.h"  /* typedefs */
 #include "arithmetic.h"
 
+
+/* matrix-matrix multiplication: pout = pmtxA * pmtxB.
+ * pmtxA has size (rowsA x colsA),
+ * pmtxB has size (colsA x colsB),
+ * pout has size (rowsA x colsB) */
+extern void aircraftpce_mtx_multiply_mtx_mtx(real_t pout[], const real_t pmtxA[],
+		const real_t pmtxB[],
+		const uint32_t rowsA,
+		const uint32_t colsA,
+    const uint32_t colsB);
+
 /* matrix-vector multiplication: pout = pmtx * pvec.
  * pmtx has size (rows x columns) */
 extern void aircraftpce_mtx_multiply_mtx_vec(real_t pout[], const real_t pmtx[],

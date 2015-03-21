@@ -11,9 +11,6 @@ typedef char char_t;
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed int int32_t;
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
 #endif
 
 #ifndef _SYS_TYPES_H
@@ -23,6 +20,9 @@ typedef signed long int64_t;
 #endif
 #endif
 
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
 #if !defined(_UINT64_T) && !defined(UINT64_MAX)
 #define _UINT64_T
 typedef unsigned long uint64_t;

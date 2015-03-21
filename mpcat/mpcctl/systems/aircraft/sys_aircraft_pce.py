@@ -59,12 +59,14 @@ condition number of the Hessian of the MPC quadratic program (see
 
 import numpy as np
 from scipy import io
-
-m = io.loadmat('data_matrix.mat')
-Q = m['Q_total']
-R = m['R_total']
-Ad = m['Asys']
-Bd = m['Bsys']
+dt = 0.5
+N = 5
+mm = io.loadmat('data_matrix.mat')
+Q = mm['Q_total']
+R = mm['R_total']
+Ad = mm['Asys']
+Bd = mm['Bsys']
+(n, m) = np.array(Bd).shape
 
 P=Q
 # input constraints
@@ -79,21 +81,12 @@ ey3 = 30.
 # bounds
 e_lb = [[-ex2], [-ey3], [-ex5]]
 e_ub = np.array([[1e9], [ex2], [ey3*1e9], [1e9], [ex5]])
-e_lb = -e_ub 
+e_lb = -e_ub
 # constraint matrices
+Kx = np.zeros((5, n))
 
 # terminal state constraints
-f_lb = e_lb
-f_ub = e_ub
-F = Kx
-phi2 = [[1, 2, 3, 4, 5], [6., 7, 8, 9, 0], [1, 2, 3, 4, 5]];
-phi2f = [[6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16.,17,18,19,20]];
-(n, m) = np.array(Bd).shape
-(r, n) = np.array(Kx).shape
-data = dict(A=np.array(Ad), B=np.array(Bd), P=np.array(P), Q=np.array(Q), R=np.array(R), n=n, m=m, r=r,
+data = dict(A=np.array(Ad), B=np.array(Bd), P=np.array(P), Q=np.array(Q), R=np.array(R), n=n, m=m, N=N,
 u_lb=np.array(u_lb), u_ub=np.array(u_ub),
 e_lb=np.array(e_lb), e_ub=np.array(e_ub),
-f_lb=np.array(f_lb), f_ub=np.array(f_ub), F=np.array(F),
-Kx=np.array(Kx), Ku=np.array(Ku),
-phi2=np.array(phi2), phi2f=np.array(phi2f),
 zero=np.zeros((n,1)))

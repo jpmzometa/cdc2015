@@ -3,6 +3,31 @@
 #include "aircraftpcefipops.h"
 #endif
 
+
+/* matrix-matrix multiplication: pout = pmtxA * pmtxB.
+ * pmtxA has size (rowsA x colsA),
+ * pmtxB has size (colsA x colsB),
+ * pout has size (rowsA x colsB) */
+extern void aircraftpce_mtx_multiply_mtx_mtx(real_t pout[], const real_t pmtxA[],
+		const real_t pmtxB[],
+		const uint32_t rowsA,
+		const uint32_t colsA,
+    		const uint32_t colsB)
+{
+	uint32_t i, j, k; /* loop counters */
+
+	for (i = 0; i < rowsA; i++) {
+		for (j = 0; j < colsB; j++) {
+      			pout[i*colsB+j] = 0.;
+			for (k = 0; k < colsA; k++) {
+			        pout[i*colsB+j] += pmtxA[i*colsA + k] * pmtxB[k*colsB + j];
+			}
+		}
+	}
+	return;
+}
+
+
 /* matrix-vector multiplication: pout = pmtx * pvec.
  * pmtx has size (rows x columns) */
 void aircraftpce_mtx_multiply_mtx_vec(real_t pout[], const real_t pmtx[],

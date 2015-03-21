@@ -55,6 +55,7 @@ include $(CHIBIOS)/mpcctl/mpcctl.mk
 # setting.
 CSRC = $(MPCCTLSRC) \
 			 pce.c \
+			 pcedata.c \
        main.c
 
 
