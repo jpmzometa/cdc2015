@@ -42,5 +42,11 @@ def print_mtx_c(mtxs, names):
     with open('../../../src/pc/sysmtx.c', 'w') as f:
         f.write(c)
 
+def get_sys(x):
+    A = get_A_original(x[0])
+    B = get_B_original(x[1])
+
+    return dict(A=np.array(A).reshape((5,5)), B= np.array(B).reshape((5,1)))
+
 if __name__ == '__main__':
     main()
