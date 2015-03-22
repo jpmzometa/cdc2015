@@ -1,18 +1,8 @@
 #include <math.h>  /* sqrt */
 #include <stdio.h>
 #include <mtx_ops.h>
+#include <mpc.h>
 
-extern void pce_sqrt(real_t out[], real_t mtx[], real_t vec[], uint32_t rows, uint32_t cols) {
-
-  uint32_t i;
-  mtx_multiply_mtx_vec(out, mtx, vec, rows, cols);
-
-  for (i=0; i<rows; i++) {
-    out[i] = sqrt(out[i]);
-  }
-
-  return;
-}
 
 extern void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t x[]) {
 // The only external input which is needed is the vector of expanded states 
@@ -61,9 +51,11 @@ extern void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t 
   return;
 }
 
-extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], real_t A_sys[], real_t B_sys[], real_t u_sequence[]) {
+extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], const real_t A_sys[], const real_t B_sys[], real_t u_sequence[]) {
 
   uint32_t i, j, Np, nx, p, nu, nx_expanded;
+
+  extern struct mpc_ctl ctl;
   p = 5; // This is the number of elements of the expansion
   nx = 5; // Number of states of the original system
   nu = 1;
@@ -82,11 +74,15 @@ extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], re
 	  u_sequence[i] = u_sequence[i+1];
   }
   u_sequence[Np-1] = u_sequence[Np-2];
+
   // The first element of x_pred is just the initial condition
   for (i = 0; i < nx_expanded; i++){
 	  x_pred[i] = x_measured_expanded[i];
   }	
   // Simulate the system to get the rest of the prediction
+  for (i = 0; i < Np; i++){
+	  ctl.u_opt[i] = u_sequence[i];
+  }
   for (i=1; i < Np+1; i++) {
 	  printf("control %f, \n", u_sequence[i-1]);  
 	  mtx_multiply_mtx_vec(out_state, A_sys, x_0, nx_expanded, nx_expanded);
@@ -97,6 +93,12 @@ extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], re
 		  x_0[j] = x_next[j];
 		  x_pred[i*nx_expanded+j] = x_next[j];
 	  }
+#if 0
+    mpc_predict_next_state(&ctl, x_0);
+	  for (j = 0; j < nx_expanded; j++){	
+		  x_pred[i*nx_expanded+j] = x_0[j];
+	  }
+#endif
   }
 
   return;

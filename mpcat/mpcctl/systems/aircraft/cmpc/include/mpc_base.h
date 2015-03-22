@@ -17,13 +17,13 @@ uint32_t warmstart;  /**< If not 0, automatically warmstart next algorithm itera
  * Some of them are pointed at by the respective algorithm internal variable. */
 
 struct mpc_qpx {
-const real_t *HoL;  /**< The Hessian matrix. */
-const real_t *gxoL;  /**< The gradient vector. */
-const real_t *E;  /**< The state-dependent inequality constraints matrix. */
+real_t *HoL;  /**< The Hessian matrix. */
+real_t *gxoL;  /**< The gradient vector. */
+real_t *E;  /**< The state-dependent inequality constraints matrix. */
 const real_t *u_lb;  /**< The lower bound for the state independent constraints. */
 const real_t *u_ub;  /**< The upper bound for the state independent constraints. */
-const real_t *zx_lb;  /**< The lower bound for the state dependent constraints. */
-const real_t *zx_ub;  /**< The upper bound for the state dependent constraints.  */
+real_t *zx_lb;  /**< The lower bound for the state dependent constraints. */
+real_t *zx_ub;  /**< The upper bound for the state dependent constraints.  */
 const uint32_t HOR_INPUTS;  /**< The length of the state independent constraints. */
 const uint32_t HOR_MXCONSTRS;  /**< The length of the state dependent constraints. */
 };  /**< MPC quadratic program form for a given system state x. 
@@ -58,7 +58,7 @@ real_t *u_0;  /**< Initial guess for the optimal control sequence. */
 real_t *gxoL;  /**< Gradient vector over Lipschitz for the current system state. */
 real_t *groL;  /**< Non-zero reference component of gradient vector component over Lipschitz constant. */
 uint32_t *j_in;  /**< Maximun number of internal loop (FGM) iterations .*/
-const real_t *HoL;  /**< Hessian matrix of QP over Lipschitz constant. */
+real_t *HoL;  /**< Hessian matrix of QP over Lipschitz constant. */
 const real_t *GoL;  /**< Linear term matrix of the QP, over Lipschitz constant. */
 const real_t *Bh_T;  /**< Extended input matrix (used for reference tracking). */
 const real_t *u_lb;  /**< Lower bound constraint of the inputs for condensed QP. */
@@ -78,7 +78,7 @@ real_t *zx_lb;  /**< Mixed constraint lower bound as function of current state. 
 real_t *zx_ub;  /**< Mixed constraint upper bound as function of current state. */
 uint32_t *i_ex;  /**< Maximum number of external loop (ALM) iterations. */
 const real_t *mu;  /**< Augmented Lagrange method penalty parameter. */
-const real_t *E;  /**< Linear factor of 2-sided state constraint. */
+real_t *E;  /**< Linear factor of 2-sided state constraint. */
 const real_t *Kx_Ai;  /**< Prediction component of the mixed constraint bound. */
 const real_t *e_lb;  /**< Lower bound for the mixed constraint. */
 const real_t *e_ub;  /**< Upper bound for the mixed constraint. */

@@ -5,6 +5,7 @@ import unittest
 import shutil
 from subprocess import call
 from sys import path
+path.append('../../../src/pc')
 
 import numpy as np
 from numpy import linalg as la
@@ -43,10 +44,56 @@ def main():
     m.sdg.generate_static_data(data, m.prefix)
     print(m.prefix)
     data = m.ddg.generate_data(data, m.prefix)
-    path.append('../../../src/pc')
     import Emtx
     E = np.array(Emtx.E).reshape((25, 5))
+    #et_trace()
+    #tl = setup_mpc_ctl(data)
+    ctl = None
+    pardata = dict()
+    pardata['xr'] = _vecseq2array(paramref['xr'])
+    pardata['ur'] = _vecseq2array(paramref['ur'])
+    pardata['x_k'] = np.matrix(paramref['x_k']).T
+    from muaompc.ltidt import setup_mpc_problem
+    cmpc = setup_mpc_problem('sys_aircraft_pce')
+    ctl = cmpc.ctl
 
+
+    #tl.configure(2)
+    #tl.u_ini = np.zeros((data['N']*data['m'],))
+    #tl.solve_problem(pardata)
+    return ctl
+def test_qpoases():
+    ROWS, COLS = (0,1)
+    from qpoases import PyQProblem as QProblem
+    import Emtx
+    E = np.array(Emtx.E).reshape((25, 5))
+    H = np.array(Emtx.H).reshape((5, 5))
+    from muaompc.ltidt import setup_mpc_problem
+    cmpc = setup_mpc_problem('sys_aircraft_pce')
+    ctl = cmpc.ctl
+    zx_ub = np.array(Emtx.zx_ub).reshape((25,1))
+    e_ub = np.array(Emtx.e_ub).reshape((25,1))
+    zx_lb = zx_ub - 2*e_ub
+    x0 = np.array(Emtx.x0).reshape((30,1))
+    ctl.form_qp(x0)
+    qpx = ctl.qpx
+    qpx.E = E
+    qpx.zx_ub = zx_ub
+    qpx.zx_lb = zx_lb
+
+    u_opt = np.zeros(ctl.u_opt.shape[ROWS])
+    oas = QProblem(ctl.qpx.E.shape[COLS], ctl.qpx.E.shape[ROWS])
+    oas.init(qpx.HoL, qpx.gxoL[:,0], qpx.E, qpx.u_lb[:,0], qpx.u_ub[:,0],qpx.zx_lb[:,0], qpx.zx_ub[:,0], 25)
+    oas.getPrimalSolution(u_opt)
+    print(u_opt)
+    Linv = compute_muaompc_constants(H, E)
+    oas = QProblem(ctl.qpx.E.shape[COLS], ctl.qpx.E.shape[ROWS])
+    oas.init(qpx.HoL*Linv[0], qpx.gxoL[:,0]*Linv[0], qpx.E, qpx.u_lb[:,0], qpx.u_ub[:,0],qpx.zx_lb[:,0], qpx.zx_ub[:,0], 25)
+    oas.getPrimalSolution(u_opt)
+    print(u_opt)
+
+
+def compute_muaompc_constants(H, E):
     mues = [1e-4, 1e-5]
     Linv = []
     nu = []
@@ -64,22 +111,7 @@ def main():
     print('mu, ', mues)
     print('Linv, ', Linv)
     print('nu, ', nu)
-    #et_trace()
-    #tl = setup_mpc_ctl(data)
-    ctl = None
-    pardata = dict()
-    pardata['xr'] = _vecseq2array(paramref['xr'])
-    pardata['ur'] = _vecseq2array(paramref['ur'])
-    pardata['x_k'] = np.matrix(paramref['x_k']).T
-    from muaompc.ltidt import setup_mpc_problem
-    cmpc = setup_mpc_problem('sys_aircraft_pce')
-    ctl = cmpc.ctl
-
-
-    #tl.configure(2)
-    #tl.u_ini = np.zeros((data['N']*data['m'],))
-    #tl.solve_problem(pardata)
-    return ctl
+    return Linv
 
 def _vecseq2array(vecseq):
     outer_rows = len(vecseq)
@@ -95,4 +127,6 @@ def _vecseq2array(vecseq):
 if __name__ == '__main__':
     if install:
         _install()
-    main()
+    #ain()
+    u = test_qpoases()
+

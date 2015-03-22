@@ -6,6 +6,7 @@
 #include <sys/time.h>
 
 #include <mpcctl.h>
+#include <mpc_stc.h>
 #include <aircraftpcecvp.h>
 #include <aircraftpcecvpdata.h>
 #include <aircraftpcemtxops.h>
@@ -37,10 +38,8 @@ uint64_t get_time_stamp(void) {
 int main(void)
 {
 #if 0
-  extern real_t x[];
   extern real_t x_measured_expanded[];
-  extern real_t A_sys[];
-  extern real_t B_sys[];
+  extern real_t x[];
   extern real_t u_sequence[];
 #endif
   real_t x[] = {0.131676852301864,
@@ -230,7 +229,7 @@ int main(void)
 									0,0,0,0,0,0,
 								-400, 0,0,0,0,0,
 									0,0,0,0,0,0};
-					
+
 real_t A_sys[] = {0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 0,	0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 0,	0,	0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,  0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
@@ -300,16 +299,11 @@ real_t u_sequence[] = {-0.2620,
 					   -0.2620};
 
 
-  int i;
+
+  uint32_t i, j;
   uint32_t p, nx, Np, n_rows, n_cols, nx_expanded;
 
   extern struct mpc_ctl ctl;
-  real_t x0[MPC_STATES];
-  for (i=0; i<MPC_STATES; i++) {
-    x0[i]=0.;
-  }
-  x0[18]=-400;
-
 
   //Define the output arrays and the input data
    p = 5; // This is the number of elements of the expansion
@@ -326,8 +320,8 @@ real_t u_sequence[] = {-0.2620,
     pce_get_prediction(x_pred, x_measured_expanded, A_sys, B_sys, u_sequence);
     aircraftpce_initialize_problem_structure(&cvp);
 
-    for (i=0; i<MPC_STATES; i++) {
-      cvp.prb->x_k->data[i] = x0[i];
+    for (i=0; i<nx_expanded; i++) {
+      cvp.prb->x_k->data[i] = x[i];
     }
 
     aircraftpce_cvp_form_problem(&cvp);
@@ -341,19 +335,56 @@ real_t u_sequence[] = {-0.2620,
     real_t JAx0[n_rows];
     real_t JXpred_JAx0[n_rows];
     real_t v_ub_x[n_rows];
+    real_t zx_ub[n_rows];
+    real_t zx_lb[n_rows];
 /* v_ub contains -A*x0 */
     aircraftpce_mtx_multiply_mtx_mtx(JAx0, jac_eval, &(cvp.prb->v_ub->data[nx_expanded]), n_rows,
         n_cols, 1);
-    aircraftpce_mtx_multiply_mtx_vec(JXpred, jac_eval, &(x_pred[nx_expanded]), n_rows,
+    aircraftpce_mtx_multiply_mtx_vec(JXpred, jac_eval, &(x[nx_expanded]), n_rows,
         n_cols);
     aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
     aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
-    aircraftpce_mtx_add(ctl.qpx->zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
-#if 0
+    aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
+    aircraftpce_mtx_add(zx_lb, ctl.alm->e_lb, v_ub_x, n_rows, 1);
+    real_t mu = 1.0001;
+    real_t nu = 0.79380834980270076;
+    real_t Linv = 0.032117260179852634;
 
+    for (i=0; i<25; i++) {
+    ctl.qpx->HoL[i] = cvp.prb->H->data[i] * Linv;
+    }
+    for (i=0; i<5; i++) {
+    ctl.qpx->gxoL[i] = cvp.prb->g->data[i] * Linv;
+    }
+    for (i=0; i<n_rows*cvp.prb->V->cols; i++) {
+    ctl.qpx->E[i+25] = E[i];
+    }
+    for (i=0; i<n_rows; i++) {
+    ctl.qpx->zx_ub[i+5] = zx_ub[i];
+    ctl.qpx->zx_lb[i+5] = zx_lb[i];
+    }
+    for (i=0; i<5; i++) {
+    ctl.qpx->zx_ub[i] = 0.; 
+    ctl.qpx->zx_lb[i] = 0.;
+    }
+
+
+    ctl.alm->mu = &mu;
+    ctl.alm->Linv = &Linv;
+    ctl.alm->fgm->nu = &nu;
+    for (j=0; j<20; j++) {
+    ctl.conf->in_iter = j*2;
+    ctl.conf->ex_iter = j;
+    stc_alm_minimize_qp(ctl.alm, ctl.u_opt, ctl.l_opt);
+      for (i=0; i<5; i++) {
+      printf("u_opt[%d]: %f, ", i, ctl.u_opt[i]);
+      }
+      printf("\n");
+    }
+#if 0
 #endif
 	FILE *fp;
-  printf("nrows: %d, ncols: %d \n", n_cols, n_rows); 
+  printf("nrows: %d, ncols: %d \n", n_rows, n_cols); 
     fp = fopen( "Emtx.py", "w" );
 	 fprintf(fp, "V=[");
     for (i=0; i<(cvp.prb->V->rows*cvp.prb->V->cols); i++) {
@@ -372,7 +403,7 @@ real_t u_sequence[] = {-0.2620,
 	 fprintf(fp, "]\n");
 	 fprintf(fp, "x_pred=[");
     for (i=0; i<(nx_expanded*(Np+1)); i++) {
-         fprintf(fp, "%f,", x_pred[i]);
+         fprintf(fp, "%f,", x[i]);
     }
 	 fprintf(fp, "]\n");
 	 fprintf(fp, "e_ub=[");
@@ -393,6 +424,21 @@ real_t u_sequence[] = {-0.2620,
 	 fprintf(fp, "zx_ub=[");
     for (i=0; i<(n_rows); i++) {
          fprintf(fp, "%f,",ctl.qpx->zx_ub[i]);
+    }
+	 fprintf(fp, "]\n");
+	 fprintf(fp, "x0=[");
+    for (i=0; i<(nx_expanded); i++) {
+         fprintf(fp, "%f,",cvp.prb->x_k->data[i]);
+    }
+	 fprintf(fp, "]\n");
+	 fprintf(fp, "H=[");
+    for (i=0; i<(25); i++) {
+         fprintf(fp, "%f,",cvp.prb->H->data[i]);
+    }
+	 fprintf(fp, "]\n");
+	 fprintf(fp, "G=[");
+    for (i=0; i<(5*30); i++) {
+         fprintf(fp, "%f,", cvp.pmetric[AIRCRAFTPCE_G]->fac[AIRCRAFTPCE_X_K]->data[i]);
     }
 	 fprintf(fp, "]\n");
 
