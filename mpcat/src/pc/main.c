@@ -345,48 +345,9 @@ real_t u_sequence[] = {-0.2620,
 /* start */
 
     uint32_t i, j;
-    uint32_t p, nx, Np, n_rows, n_cols, nx_expanded;
+
     extern struct mpc_ctl ctl;
-
-    //Define the output arrays and the input data
-     p = 5; // This is the number of elements of the expansion
-    nx = 5; // Number of states of the original system
-    Np = 5; // Prediction horizon
-    nx_expanded = nx * (p+1);
-    n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
-    n_cols = (p+1) * nx * Np; // Columns of the Jacobian
-    real_t func_eval[n_rows]; 			// This is the first output of this function
-    real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
-
-    real_t xorig[] = {0., 0., 0., -400., -0.};
-    real_t x_pred[nx_expanded*(Np+1)];
-
     aircraftpce_initialize_problem_structure(&cvp);
-
-    state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
-    pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
-    pce_jacobian_function(func_eval, jac_eval, x_pred);
-    aircraftpce_cvp_form_problem(&cvp);
-
-    real_t E[n_rows*cvp.prb->V->cols];
-    aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[nx_expanded*(Np*1)]), n_rows,
-        n_cols, cvp.prb->V->cols);
-    real_t bdiag_jac[nx*n_cols];
-    real_t JXpred[n_rows];
-    real_t JAx0[n_rows];
-    real_t JXpred_JAx0[n_rows];
-    real_t v_ub_x[n_rows];
-    real_t zx_ub[n_rows];
-    real_t zx_lb[n_rows];
-/* v_ub contains -A*x0 */
-    mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
-
-    mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
-    mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), nx, nx_expanded, 1, Np);
-    aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
-    aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
-    aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
-    aircraftpce_mtx_add(zx_lb, ctl.alm->e_lb, v_ub_x, n_rows, 1);
 #if 0
     real_t mu = 1.000;
     real_t Linv = 0.032117260179852634;
@@ -399,7 +360,46 @@ real_t u_sequence[] = {-0.2620,
     uint32_t in_iter = 60;
     uint32_t ex_iter = 7;
 #endif
+    uint32_t p, nx, Np, n_rows, n_cols, nx_expanded;
 
+    //Define the output arrays and the input data
+     p = 5; // This is the number of elements of the expansion
+    nx = 5; // Number of states of the original system
+    Np = 5; // Prediction horizon
+    nx_expanded = nx * (p+1);
+    n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
+    n_cols = (p+1) * nx * Np; // Columns of the Jacobian
+
+    real_t func_eval[n_rows]; 			// This is the first output of this function
+    real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
+
+    real_t xorig[] = {0., 0., 0., -400., -0.};
+    real_t x_pred[nx_expanded*(Np+1)];
+    real_t E[n_rows*cvp.prb->V->cols];
+    real_t bdiag_jac[nx*n_cols];
+    real_t JXpred[n_rows];
+    real_t JAx0[n_rows];
+    real_t JXpred_JAx0[n_rows];
+    real_t v_ub_x[n_rows];
+    real_t zx_ub[n_rows];
+    real_t zx_lb[n_rows];
+
+    state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
+    pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
+    pce_jacobian_function(func_eval, jac_eval, x_pred);
+    aircraftpce_cvp_form_problem(&cvp);
+
+    aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[nx_expanded*(Np*1)]), n_rows,
+        n_cols, cvp.prb->V->cols);
+/* v_ub contains -A*x0 */
+    mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
+
+    mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
+    mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), nx, nx_expanded, 1, Np);
+    aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
+    aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
+    aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
+    aircraftpce_mtx_add(zx_lb, ctl.alm->e_lb, v_ub_x, n_rows, 1);
 
     for (i=0; i<25; i++) {
     ctl.qpx->HoL[i] = cvp.prb->H->data[i] * Linv;
@@ -434,6 +434,7 @@ real_t u_sequence[] = {-0.2620,
       printf("\n");
     }
     stc_ctl_warmstart(&ctl);
+
 
 	FILE *fp;
     fp = fopen( "Emtx.py", "w" );
