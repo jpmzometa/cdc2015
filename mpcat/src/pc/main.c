@@ -360,18 +360,11 @@ real_t u_sequence[] = {-0.2620,
 
     extern struct mpc_ctl ctl;
     aircraftpce_initialize_problem_structure(&cvp);
-#if 0
-    real_t mu = 1.000;
-    real_t Linv = 0.032117260179852634;
-    real_t nu = 0.79380834980270076;
-#endif
-#if 1
-    real_t mu = 1e0;
-    real_t Linv = 0.00092363382016503125;
-    real_t nu = 0.96175968103476439;
-    uint32_t in_iter = 60;
-    uint32_t ex_iter = 7;
-#endif
+    real_t mu = 1.2;
+    real_t Linv = 0.031128858194943453;
+    real_t nu = 0.79668083435185955;
+    uint32_t in_iter = 5;
+    uint32_t ex_iter = 15;
     uint32_t p, nx, Np, n_rows, n_cols, nx_expanded, ncx;
 
     //Define the output arrays and the input data
@@ -408,6 +401,7 @@ real_t u_sequence[] = {-0.2620,
       fprintf(fp, "u_%d, ", i);
     }
     fprintf(fp, "\n");
+    printf("simulating: \n");
 
     for (k=0; k<SIM_POINTS; k++) {
         state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
@@ -456,19 +450,22 @@ real_t u_sequence[] = {-0.2620,
         stc_alm_minimize_qp(ctl.alm, ctl.u_opt, ctl.l_opt);
 #if 0
           printf("u_opt (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
+        printf("k:%d \n", k);
 #endif
         for (i=0; i<nx; i++) {
             fprintf(fp, "%f, ", xorig[i]);
+#if 0
             printf(" %f, ", xorig[i]);
+#endif
         }
-        printf("\n");
         for (i=0; i<Np; i++) {
             fprintf(fp, "%f, ", ctl.u_opt[i]);
+#if 0
             printf(" %f, ", ctl.u_opt[i]);
+#endif
             u_sequence[i] = ctl.u_opt[i];
         }
         fprintf(fp, "\n");
-        printf("\n");
 
         }
 

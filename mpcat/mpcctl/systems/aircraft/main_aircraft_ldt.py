@@ -45,7 +45,7 @@ def main():
     print(m.prefix)
     data = m.ddg.generate_data(data, m.prefix)
     import Emtx
-    E = np.array(Emtx.E).reshape((25, 5))
+    E = np.array(Emtx.E).reshape((10, 2))
     #et_trace()
     #tl = setup_mpc_ctl(data)
     ctl = None
@@ -66,13 +66,13 @@ def test_qpoases():
     ROWS, COLS = (0,1)
     from qpoases import PyQProblem as QProblem
     import Emtx
-    E = np.array(Emtx.E).reshape((25, 5))
+    E = np.array(Emtx.E).reshape((10, 5))
     H = np.array(Emtx.H).reshape((5, 5))
     from muaompc.ltidt import setup_mpc_problem
     cmpc = setup_mpc_problem('sys_aircraft_pce')
     ctl = cmpc.ctl
-    zx_ub = np.array(Emtx.zx_ub).reshape((25,1))
-    e_ub = np.array(Emtx.e_ub).reshape((25,1))
+    zx_ub = np.array(Emtx.zx_ub).reshape((10,1))
+    e_ub = np.array(Emtx.e_ub).reshape((10,1))
     zx_lb = zx_ub - 2*e_ub
     x0 = np.array(Emtx.x0).reshape((30,1))
     ctl.form_qp(x0)
@@ -95,7 +95,7 @@ def test_qpoases():
 
 
 def compute_muaompc_constants(H, E):
-    mues = [1.e-2]
+    mues = [1., 1.1e0, 1.2, 1.3]
     Linv = []
     nu = []
     for mu in mues:

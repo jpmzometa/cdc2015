@@ -7,7 +7,7 @@ from pudb import set_trace
 def main():
     A = get_A_original(0.)
     B = get_B_original(0.)
-    print_mtx_c([A, B], ['A_nom', 'B_nom'])
+    print_mtx_c('../../../src/pc/', [A, B], ['A_nom', 'B_nom'])
 
     io.savemat('sysmtx.mat', dict(A=np.array(A).reshape((5,5)), B= np.array(B).reshape((5,1))))
 
@@ -31,7 +31,7 @@ def get_B_original(x2):
 
     return B
 
-def print_mtx_c(mtxs, names):
+def print_mtx_c(path, mtxs, names):
     c = '#include <mpc.h>\n'
     for k, m in enumerate(mtxs):
         s = str(m)
@@ -39,7 +39,7 @@ def print_mtx_c(mtxs, names):
         s = s.replace(']', '}')
         c += 'real_t ' + names[k] + '[] = ' + s  + ';\n'
 
-    with open('../../../src/pc/sysmtx.c', 'w') as f:
+    with open(path+'sysmtx.c', 'w') as f:
         f.write(c)
 
 def get_sys(x):
@@ -47,6 +47,12 @@ def get_sys(x):
     B = get_B_original(x[1])
 
     return dict(A=np.array(A).reshape((5,5)), B= np.array(B).reshape((5,1)))
+
+def write_c_sys(path, x):
+    A = get_A_original(x[0])
+    B = get_B_original(x[1])
+    print_mtx_c(path, [A, B], ['A_nom', 'B_nom'])
+
 
 if __name__ == '__main__':
     main()

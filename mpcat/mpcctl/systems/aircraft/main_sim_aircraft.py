@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 import numpy as np
 from copy import deepcopy
+import shutil
+from subprocess import call
 from pudb import set_trace
 
 import muaompc
-from compute_system_matrices import get_sys
+from compute_system_matrices import get_sys, write_c_sys
 
 def store_current_step_data(mpc, data, xk, uk, k):
     data.t[k] = mpc.sys.dt * k
@@ -46,6 +48,43 @@ def main():
     print(comp_cost(mpc))
     print(comp_violations(mpc))
 
+def main_C():
+    mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
+    steps = 60
+    runs = 100
+    mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
+    data_base = deepcopy(mpc.sim.data)
+
+    uncert = np.random.uniform(-1., 1., (runs, 2))
+    costs = np.zeros(runs)
+    nviol = np.zeros(runs)
+    shutil.os.chdir('../../../src/pc/')
+    for s, ps in enumerate(uncert):
+        write_c_sys('', ps)
+        call(['make'])
+        call(['./main'])
+        xu = np.genfromtxt('xutraj.csv', delimiter=',', skiprows=1)
+        x = xu[:,0:5]
+        u0 = xu[:,5:6]
+        data = deepcopy(data_base)
+        if (len(u0) != steps):
+            print('WARNING! simulation steps in C files differ from current steps.') 
+            steps = len(u0)
+
+        for k in range(steps):
+            store_current_step_data(mpc, data, x[k,:], u0[k,:], k)
+        mpc.sim.data = data
+        costs[s] = comp_cost(mpc)
+        nviol[s] = comp_violations(mpc)
+    shutil.os.chdir('../../mpcctl/systems/aircraft/')
+
+    print(np.mean(costs))
+    print(np.mean(nviol))
+    plot_results(mpc.sim.data)
+    print(comp_cost(mpc))
+    print(comp_violations(mpc))
+
+
 def comp_cost(mpc):
     data = mpc.sim.data
     x = np.matrix(data.x)
@@ -81,7 +120,7 @@ def plot_results(data):
     plt.ylabel(r"$x_2$")
     plt.xlabel(r"$t$")
     plt.subplot(313)
-    plt.plot(data.t, data.u[0,:], linestyle='steps-')
+    plt.plot(data.t, data.u0[0,:], linestyle='steps-')
     plt.title('Input [rad]')
     plt.tight_layout()
     plt.show()
@@ -89,4 +128,4 @@ def plot_results(data):
     return
 
 if __name__ == '__main__':
-    main()
+    main_C()
