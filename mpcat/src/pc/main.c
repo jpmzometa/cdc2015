@@ -18,6 +18,41 @@ struct aircraftpce_cvp cvp;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
 enum {SIM_POINTS = 2};  /* this should match the value in rs.py */
 #endif
+void mtx_multiply_block_diagonal(real_t pout[], const real_t pmtxA[],
+		const real_t pmtxB[],
+		const uint32_t rowsA,
+		const uint32_t colsA,
+    		const uint32_t colsB, const uint32_t Nblocks)
+{
+	uint32_t i,j; /* loop counters */
+
+	for (i = 0; i < Nblocks; i++) {
+      aircraftpce_mtx_multiply_mtx_mtx(
+          &(pout[(colsB*rowsA*i)]),
+          &(pmtxA[(colsA*rowsA*i)]),
+          &(pmtxB[(colsB*colsA*i)]),
+          rowsA, colsA, colsB);
+  }
+	return;
+}
+
+void mtx_bdiag2cols(real_t pout[], const real_t pmtx[],
+		const uint32_t rows,
+		const uint32_t cols,
+    const uint32_t blocks)
+{
+	uint32_t i,j,k; /* loop counters */
+
+	for (i = 0; i < blocks; i++) {
+    for (j=0; j<rows; j++) {
+      for (k=0; k<cols; k++) {
+          pout[cols*rows*i + cols*j + k] =
+          pmtx[blocks*cols*rows*i + cols*i + blocks*cols*j + k];
+      }
+  }
+  }
+	return;
+}
 
 real_t inputs[MPC_HOR_INPUTS];
 int32_t k = 0;  /* simulation mark */
@@ -325,12 +360,11 @@ real_t u_sequence[] = {-0.2620,
     }
 
     aircraftpce_cvp_form_problem(&cvp);
-  printf("Vrows: %d, Vcols: %d \n", cvp.prb->V->rows, cvp.prb->V->cols);
-  printf("vrows: %d, vcols: %d \n", cvp.prb->v_ub->rows, cvp.prb->v_ub->cols);
 
     real_t E[n_rows*cvp.prb->V->cols];
     aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[nx_expanded*(Np*1)]), n_rows,
         n_cols, cvp.prb->V->cols);
+    real_t bdiag_jac[nx*n_cols];
     real_t JXpred[n_rows];
     real_t JAx0[n_rows];
     real_t JXpred_JAx0[n_rows];
@@ -338,17 +372,33 @@ real_t u_sequence[] = {-0.2620,
     real_t zx_ub[n_rows];
     real_t zx_lb[n_rows];
 /* v_ub contains -A*x0 */
+#if 0
     aircraftpce_mtx_multiply_mtx_mtx(JAx0, jac_eval, &(cvp.prb->v_ub->data[nx_expanded]), n_rows,
         n_cols, 1);
     aircraftpce_mtx_multiply_mtx_vec(JXpred, jac_eval, &(x[nx_expanded]), n_rows,
         n_cols);
+#endif
+mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
+
+mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
+mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x[nx_expanded]), nx, nx_expanded, 1, Np);
     aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
     aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
     aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
     aircraftpce_mtx_add(zx_lb, ctl.alm->e_lb, v_ub_x, n_rows, 1);
-    real_t mu = 1.0001;
-    real_t nu = 0.79380834980270076;
+#if 0
+    real_t mu = 1.000;
     real_t Linv = 0.032117260179852634;
+    real_t nu = 0.79380834980270076;
+#endif
+#if 1
+    real_t mu = 1e1;
+    real_t Linv = 0.00092363382016503125;
+    real_t nu = 0.96175968103476439;
+    uint32_t in_iter = 30;
+    uint32_t ex_iter = 5;
+#endif
+
 
     for (i=0; i<25; i++) {
     ctl.qpx->HoL[i] = cvp.prb->H->data[i] * Linv;
@@ -372,15 +422,22 @@ real_t u_sequence[] = {-0.2620,
     ctl.alm->mu = &mu;
     ctl.alm->Linv = &Linv;
     ctl.alm->fgm->nu = &nu;
-    for (j=0; j<20; j++) {
-    ctl.conf->in_iter = j*2;
-    ctl.conf->ex_iter = j;
+    for (j=0; j<1; j++) {
+    ctl.conf->in_iter = in_iter;
+    ctl.conf->ex_iter = ex_iter;
     stc_alm_minimize_qp(ctl.alm, ctl.u_opt, ctl.l_opt);
+      printf("u_opt (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
       for (i=0; i<5; i++) {
-      printf("u_opt[%d]: %f, ", i, ctl.u_opt[i]);
+      printf(" %f, ", ctl.u_opt[i]);
       }
       printf("\n");
     }
+    stc_ctl_warmstart(&ctl);
+      printf("u_ini (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
+      for (i=0; i<5; i++) {
+      printf(" %f, ", ctl.u_ini[i]);
+      }
+      printf("\n");
 #if 0
 #endif
 	FILE *fp;

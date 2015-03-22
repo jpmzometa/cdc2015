@@ -81,20 +81,21 @@ def test_qpoases():
     qpx.zx_ub = zx_ub
     qpx.zx_lb = zx_lb
 
-    u_opt = np.zeros(ctl.u_opt.shape[ROWS])
-    oas = QProblem(ctl.qpx.E.shape[COLS], ctl.qpx.E.shape[ROWS])
-    oas.init(qpx.HoL, qpx.gxoL[:,0], qpx.E, qpx.u_lb[:,0], qpx.u_ub[:,0],qpx.zx_lb[:,0], qpx.zx_ub[:,0], 25)
-    oas.getPrimalSolution(u_opt)
-    print(u_opt)
     Linv = compute_muaompc_constants(H, E)
-    oas = QProblem(ctl.qpx.E.shape[COLS], ctl.qpx.E.shape[ROWS])
-    oas.init(qpx.HoL*Linv[0], qpx.gxoL[:,0]*Linv[0], qpx.E, qpx.u_lb[:,0], qpx.u_ub[:,0],qpx.zx_lb[:,0], qpx.zx_ub[:,0], 25)
-    oas.getPrimalSolution(u_opt)
+    u_opt = np.zeros(ctl.u_opt.shape[ROWS])
+    if 0:
+        oas = QProblem(ctl.qpx.E.shape[COLS], ctl.qpx.E.shape[ROWS])
+        oas.init(qpx.HoL, qpx.gxoL[:,0], qpx.E, qpx.u_lb[:,0], qpx.u_ub[:,0],qpx.zx_lb[:,0], qpx.zx_ub[:,0], 25)
+        oas.getPrimalSolution(u_opt)
+        print(u_opt)
+        oas = QProblem(ctl.qpx.E.shape[COLS], ctl.qpx.E.shape[ROWS])
+        oas.init(qpx.HoL*Linv[0], qpx.gxoL[:,0]*Linv[0], qpx.E, qpx.u_lb[:,0], qpx.u_ub[:,0],qpx.zx_lb[:,0], qpx.zx_ub[:,0], 25)
+        oas.getPrimalSolution(u_opt)
     print(u_opt)
 
 
 def compute_muaompc_constants(H, E):
-    mues = [1.]
+    mues = [1.e-2]
     Linv = []
     nu = []
     for mu in mues:

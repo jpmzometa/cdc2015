@@ -19,22 +19,17 @@ extern void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t 
   
   n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
   n_cols = (p+1) * nx * Np; // Columns of the Jacobian
-  printf("iter %d, %d;  \n", n_rows, p);  
   //real_t func_eval[n_rows]; 			// This is the first output of this function
   //real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
   for (k=1; k<Np + 1; k++) { 				// for all the prediction horizon except the first stage
 	for (i = 0; i < nx; i++){			// for all the states
-		printf("iter %d, %d; \n", k, i);
 		index_mean = (k)*nx*(p+1) + ((i)*(p+1));
-		printf("iter %f, \n", x[index_mean]);
 		mean = x[index_mean];	
 			
 		for (j = 0; j < p; j++){
 			var  = var + x[index_mean + j + 1]*x[index_mean + j + 1] * PHI_VAR[j]; // the variance is equal to the sum of the squares of the coefficients, scaled by PHI_VAR
 		}
 		func_eval[offset] = mean + kappa_e * sqrt(var);
-		printf("mean %f, \n", mean);
-		printf("var %f, \n", var);
 		for (l = 0; l < p+1; l++){
 			if (l == 0){
 				jac_eval[offset*n_cols + l + (offset) * (p+1)] = 1; // The derivative with respect to the first coefficient is one because it is the mean
@@ -84,7 +79,6 @@ extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], co
 	  ctl.u_opt[i] = u_sequence[i];
   }
   for (i=1; i < Np+1; i++) {
-	  printf("control %f, \n", u_sequence[i-1]);  
 	  mtx_multiply_mtx_vec(out_state, A_sys, x_0, nx_expanded, nx_expanded);
 	  mtx_multiply_mtx_vec(out_control, B_sys, &(u_sequence[i-1]), nx_expanded, nu);
 	  mtx_add(x_next,out_state, out_control, nx_expanded, 1);
