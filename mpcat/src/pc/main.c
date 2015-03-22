@@ -358,15 +358,14 @@ real_t u_sequence[] = {-0.2620,
     real_t func_eval[n_rows]; 			// This is the first output of this function
     real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
 
-    real_t xorig[] = {0.131676852301864, 0.342162647496714, 0.328054300903874, -382.970735187983, -0.110467615734654};
+    real_t xorig[] = {0., 0., 0., -400., -0.};
     real_t x_pred[nx_expanded*(Np+1)];
 
     aircraftpce_initialize_problem_structure(&cvp);
 
     state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
     pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
-    pce_jacobian_function(func_eval, jac_eval, x);
-
+    pce_jacobian_function(func_eval, jac_eval, x_pred);
     aircraftpce_cvp_form_problem(&cvp);
 
     real_t E[n_rows*cvp.prb->V->cols];
@@ -380,16 +379,10 @@ real_t u_sequence[] = {-0.2620,
     real_t zx_ub[n_rows];
     real_t zx_lb[n_rows];
 /* v_ub contains -A*x0 */
-#if 0
-    aircraftpce_mtx_multiply_mtx_mtx(JAx0, jac_eval, &(cvp.prb->v_ub->data[nx_expanded]), n_rows,
-        n_cols, 1);
-    aircraftpce_mtx_multiply_mtx_vec(JXpred, jac_eval, &(x[nx_expanded]), n_rows,
-        n_cols);
-#endif
-mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
+    mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
 
-mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
-mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x[nx_expanded]), nx, nx_expanded, 1, Np);
+    mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
+    mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), nx, nx_expanded, 1, Np);
     aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
     aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
     aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
@@ -400,11 +393,11 @@ mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x[nx_expanded]), nx, nx_expande
     real_t nu = 0.79380834980270076;
 #endif
 #if 1
-    real_t mu = 1e1;
+    real_t mu = 1e0;
     real_t Linv = 0.00092363382016503125;
     real_t nu = 0.96175968103476439;
-    uint32_t in_iter = 30;
-    uint32_t ex_iter = 5;
+    uint32_t in_iter = 60;
+    uint32_t ex_iter = 7;
 #endif
 
 
@@ -422,7 +415,7 @@ mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x[nx_expanded]), nx, nx_expande
     ctl.qpx->zx_lb[i+5] = zx_lb[i];
     }
     for (i=0; i<5; i++) {
-    ctl.qpx->zx_ub[i] = 0.; 
+    ctl.qpx->zx_ub[i] = 0.;
     ctl.qpx->zx_lb[i] = 0.;
     }
 
@@ -441,8 +434,7 @@ mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x[nx_expanded]), nx, nx_expande
       printf("\n");
     }
     stc_ctl_warmstart(&ctl);
-#if 0
-#endif
+
 	FILE *fp;
     fp = fopen( "Emtx.py", "w" );
 	 fprintf(fp, "V=[");
