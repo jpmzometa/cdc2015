@@ -54,6 +54,18 @@ void mtx_bdiag2cols(real_t pout[], const real_t pmtx[],
 	return;
 }
 
+void state_orig2pce(real_t xpce[], const real_t xorig[], const uint32_t n, const uint32_t p)
+{
+	uint32_t i,j; /* loop counters */
+	for (i = 0; i < n; i++) {
+
+    for (j=0; j<p; j++) {
+      xpce[i*n+j] = 0.;
+    }
+    xpce[i*p] = xorig[i];
+  }
+}
+
 real_t inputs[MPC_HOR_INPUTS];
 int32_t k = 0;  /* simulation mark */
 
@@ -259,12 +271,6 @@ int main(void)
 0};
   
 
-   real_t x_measured_expanded[] = {0,0,0,0,0,0,
-									0,0,0,0,0,0,
-									0,0,0,0,0,0,
-								-400, 0,0,0,0,0,
-									0,0,0,0,0,0};
-
 real_t A_sys[] = {0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 0,	0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 0,	0,	0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,  0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
@@ -335,29 +341,31 @@ real_t u_sequence[] = {-0.2620,
 
 
 
-  uint32_t i, j;
-  uint32_t p, nx, Np, n_rows, n_cols, nx_expanded;
 
-  extern struct mpc_ctl ctl;
+/* start */
 
-  //Define the output arrays and the input data
-   p = 5; // This is the number of elements of the expansion
-  nx = 5; // Number of states of the original system
-  Np = 5; // Prediction horizon
-  nx_expanded = nx * (p+1);
-  n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
-  n_cols = (p+1) * nx * Np; // Columns of the Jacobian
-  real_t func_eval[n_rows]; 			// This is the first output of this function
-  real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
+    uint32_t i, j;
+    uint32_t p, nx, Np, n_rows, n_cols, nx_expanded;
+    extern struct mpc_ctl ctl;
 
-    pce_jacobian_function(func_eval, jac_eval, x);
+    //Define the output arrays and the input data
+     p = 5; // This is the number of elements of the expansion
+    nx = 5; // Number of states of the original system
+    Np = 5; // Prediction horizon
+    nx_expanded = nx * (p+1);
+    n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
+    n_cols = (p+1) * nx * Np; // Columns of the Jacobian
+    real_t func_eval[n_rows]; 			// This is the first output of this function
+    real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
+
+    real_t xorig[] = {0.131676852301864, 0.342162647496714, 0.328054300903874, -382.970735187983, -0.110467615734654};
     real_t x_pred[nx_expanded*(Np+1)];
-    pce_get_prediction(x_pred, x_measured_expanded, A_sys, B_sys, u_sequence);
+
     aircraftpce_initialize_problem_structure(&cvp);
 
-    for (i=0; i<nx_expanded; i++) {
-      cvp.prb->x_k->data[i] = x[i];
-    }
+    state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
+    pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
+    pce_jacobian_function(func_eval, jac_eval, x);
 
     aircraftpce_cvp_form_problem(&cvp);
 
@@ -433,15 +441,9 @@ mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x[nx_expanded]), nx, nx_expande
       printf("\n");
     }
     stc_ctl_warmstart(&ctl);
-      printf("u_ini (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
-      for (i=0; i<5; i++) {
-      printf(" %f, ", ctl.u_ini[i]);
-      }
-      printf("\n");
 #if 0
 #endif
 	FILE *fp;
-  printf("nrows: %d, ncols: %d \n", n_rows, n_cols); 
     fp = fopen( "Emtx.py", "w" );
 	 fprintf(fp, "V=[");
     for (i=0; i<(cvp.prb->V->rows*cvp.prb->V->cols); i++) {
