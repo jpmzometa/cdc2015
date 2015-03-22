@@ -418,7 +418,7 @@ real_t u_sequence[] = {-0.2620,
 	 fprintf(fp, "]\n");
 	 fprintf(fp, "E=[");
     for (i=0; i<(n_rows*cvp.prb->V->cols); i++) {
-         fprintf(fp, "%f,", E[i]);
+         fprintf(fp, "%f,", ctl.qpx->E[i]);
     }
 	 fprintf(fp, "]\n");
 	 fprintf(fp, "zx_ub=[");

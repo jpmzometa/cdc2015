@@ -94,7 +94,7 @@ def test_qpoases():
 
 
 def compute_muaompc_constants(H, E):
-    mues = [1e-4, 1e-5]
+    mues = [1.]
     Linv = []
     nu = []
     for mu in mues:
