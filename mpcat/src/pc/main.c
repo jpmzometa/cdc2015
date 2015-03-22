@@ -372,14 +372,15 @@ real_t u_sequence[] = {-0.2620,
     uint32_t in_iter = 60;
     uint32_t ex_iter = 7;
 #endif
-    uint32_t p, nx, Np, n_rows, n_cols, nx_expanded;
+    uint32_t p, nx, Np, n_rows, n_cols, nx_expanded, ncx;
 
     //Define the output arrays and the input data
      p = 5; // This is the number of elements of the expansion
     nx = 5; // Number of states of the original system
     Np = 5; // Prediction horizon
+    ncx = 2; // number of state constraints
     nx_expanded = nx * (p+1);
-    n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
+    n_rows = ncx * Np; // Rows of the function evaluation and of the Jacobian
     n_cols = (p+1) * nx * Np; // Columns of the Jacobian
 
     real_t func_eval[n_rows]; 			// This is the first output of this function
@@ -411,16 +412,16 @@ real_t u_sequence[] = {-0.2620,
     for (k=0; k<SIM_POINTS; k++) {
         state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
         pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
-        pce_jacobian_function(func_eval, jac_eval, x_pred);
+        pce_jacobian_function_reduced(func_eval, jac_eval, x_pred);
         aircraftpce_cvp_form_problem(&cvp);
 
         aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[nx_expanded*(Np*1)]), n_rows,
             n_cols, cvp.prb->V->cols);
     /* v_ub contains -A*x0 */
-        mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
+        mtx_bdiag2cols(bdiag_jac, jac_eval, ncx, nx_expanded, Np);
 
-        mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
-        mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), nx, nx_expanded, 1, Np);
+        mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), ncx, nx_expanded, 1, Np);
+        mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), ncx, nx_expanded, 1, Np);
         aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
         aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
         aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
@@ -433,13 +434,13 @@ real_t u_sequence[] = {-0.2620,
         ctl.qpx->gxoL[i] = cvp.prb->g->data[i] * Linv;
         }
         for (i=0; i<n_rows*cvp.prb->V->cols; i++) {
-        ctl.qpx->E[i+25] = E[i];
+        ctl.qpx->E[i+ncx*Np] = E[i];
         }
         for (i=0; i<n_rows; i++) {
-        ctl.qpx->zx_ub[i+5] = zx_ub[i];
-        ctl.qpx->zx_lb[i+5] = zx_lb[i];
+        ctl.qpx->zx_ub[i+ncx] = zx_ub[i];
+        ctl.qpx->zx_lb[i+ncx] = zx_lb[i];
         }
-        for (i=0; i<5; i++) {
+        for (i=0; i<ncx; i++) {
         ctl.qpx->zx_ub[i] = 0.;
         ctl.qpx->zx_lb[i] = 0.;
         }
@@ -470,6 +471,7 @@ real_t u_sequence[] = {-0.2620,
         printf("\n");
 
         }
+
 
         sym_real_system(xorig, ctl.u_opt);
 

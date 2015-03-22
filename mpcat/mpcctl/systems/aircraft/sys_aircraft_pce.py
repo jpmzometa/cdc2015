@@ -80,10 +80,11 @@ ex5 = 0.524 * dt  # rad/s * dt input slew rate constraint in discrete time
 ey3 = 30.
 # bounds
 e_lb = [[-ex2], [-ey3], [-ex5]]
-e_ub = np.array([[1e9], [ex2], [ey3*1e9], [1e9], [ex5]])
+e_ub = np.array([[ex2], [ex5]])
 e_lb = -e_ub
+(ncx, dummy) = e_ub.shape
 # constraint matrices
-Kx = np.zeros((5, n))
+Kx = np.zeros((ncx, n))
 
 # terminal state constraints
 data = dict(A=np.array(Ad), B=np.array(Bd), P=np.array(P), Q=np.array(Q), R=np.array(R), n=n, m=m, N=N,

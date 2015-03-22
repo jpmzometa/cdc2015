@@ -59,11 +59,11 @@ real_t *gxoL;  /**< Gradient vector over Lipschitz for the current system state.
 real_t *groL;  /**< Non-zero reference component of gradient vector component over Lipschitz constant. */
 uint32_t *j_in;  /**< Maximun number of internal loop (FGM) iterations .*/
 real_t *HoL;  /**< Hessian matrix of QP over Lipschitz constant. */
-const real_t *GoL;  /**< Linear term matrix of the QP, over Lipschitz constant. */
+real_t *GoL;  /**< Linear term matrix of the QP, over Lipschitz constant. */
 const real_t *Bh_T;  /**< Extended input matrix (used for reference tracking). */
 const real_t *u_lb;  /**< Lower bound constraint of the inputs for condensed QP. */
 const real_t *u_ub;  /**< Upper bound constraint of the inputs for condensed QP. */
-const real_t *nu;  /**< Fast gradient extra step constant. */
+real_t *nu;  /**< Fast gradient extra step constant. */
 const uint32_t HOR;  /**< MPC prediction horizon. */
 const uint32_t STATES;   /**< Number of system states. */
 const uint32_t INPUTS;  /**< Number of system inputs. */
@@ -77,12 +77,12 @@ real_t *l_0;  /**< Initial guess for the optimal multiplier. */
 real_t *zx_lb;  /**< Mixed constraint lower bound as function of current state. */
 real_t *zx_ub;  /**< Mixed constraint upper bound as function of current state. */
 uint32_t *i_ex;  /**< Maximum number of external loop (ALM) iterations. */
-const real_t *mu;  /**< Augmented Lagrange method penalty parameter. */
+real_t *mu;  /**< Augmented Lagrange method penalty parameter. */
 real_t *E;  /**< Linear factor of 2-sided state constraint. */
 const real_t *Kx_Ai;  /**< Prediction component of the mixed constraint bound. */
 const real_t *e_lb;  /**< Lower bound for the mixed constraint. */
 const real_t *e_ub;  /**< Upper bound for the mixed constraint. */
-const real_t *Linv;  /**< Inverse of gradient Lipschitz constant (1/L). */
+real_t *Linv;  /**< Inverse of gradient Lipschitz constant (1/L). */
 const uint32_t STATES;   /**< Number of system states. */
 const uint32_t MXCONSTRS; /**< Number of state constraints. */
 const uint32_t HOR_INPUTS;  /**< Horizon times number of inputs. */
