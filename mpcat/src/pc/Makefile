@@ -56,6 +56,7 @@ include $(CHIBIOS)/mpcctl/mpcctl.mk
 CSRC = $(MPCCTLSRC) \
 			 pce.c \
 			 pcedata.c \
+			 sysmtx.c \
        main.c
 
 

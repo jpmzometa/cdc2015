@@ -70,10 +70,10 @@ void sym_real_system(real_t x_k[], real_t u_k[]) {
   uint32_t m = 1;
   real_t out_state[n];
   real_t out_control[n];
-real_t A[] = {0.23996015, 0, 0.17871287, 0, 0, -0.37221757, 1, 0.27026411, 0, 0, -0.99008755, 0, 0.13885973, 0, 0, -48.93540655, 64.1, 2.39923411, 1, 0, 0, 0, 0, 0, 0};
-real_t B[] = {-1.2346445, -1.43828223, -4.48282454, -1.79989043, 1.0};
-	  mtx_multiply_mtx_vec(out_state, A, x_k, n, n);
-	  mtx_multiply_mtx_vec(out_control, B, u_k, n, m);
+  extern real_t A_nom[];
+  extern real_t B_nom[];
+	  mtx_multiply_mtx_vec(out_state, A_nom, x_k, n, n);
+	  mtx_multiply_mtx_vec(out_control, B_nom, u_k, n, m);
 	  mtx_add(x_k, out_state, out_control, n, 1);
     return;
 }
