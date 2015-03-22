@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <mtx_ops.h>
 #include <mpc.h>
+#include <pce.h>
 
 
 extern void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t x[]) {

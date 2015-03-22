@@ -16,7 +16,7 @@
 #ifdef AIRCRAFT
 struct aircraftpce_cvp cvp;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
-enum {SIM_POINTS = 2};  /* this should match the value in rs.py */
+enum {SIM_POINTS = 60};  /* this should match the value in rs.py */
 #endif
 void mtx_multiply_block_diagonal(real_t pout[], const real_t pmtxA[],
 		const real_t pmtxB[],
@@ -64,6 +64,18 @@ void state_orig2pce(real_t xpce[], const real_t xorig[], const uint32_t n, const
     }
     xpce[i*p] = xorig[i];
   }
+}
+void sym_real_system(real_t x_k[], real_t u_k[]) {
+  uint32_t n = 5;
+  uint32_t m = 1;
+  real_t out_state[n];
+  real_t out_control[n];
+real_t A[] = {0.23996015, 0, 0.17871287, 0, 0, -0.37221757, 1, 0.27026411, 0, 0, -0.99008755, 0, 0.13885973, 0, 0, -48.93540655, 64.1, 2.39923411, 1, 0, 0, 0, 0, 0, 0};
+real_t B[] = {-1.2346445, -1.43828223, -4.48282454, -1.79989043, 1.0};
+	  mtx_multiply_mtx_vec(out_state, A, x_k, n, n);
+	  mtx_multiply_mtx_vec(out_control, B, u_k, n, m);
+	  mtx_add(x_k, out_state, out_control, n, 1);
+    return;
 }
 
 real_t inputs[MPC_HOR_INPUTS];
@@ -374,6 +386,7 @@ real_t u_sequence[] = {-0.2620,
     real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
 
     real_t xorig[] = {0., 0., 0., -400., -0.};
+    real_t x_k[nx];
     real_t x_pred[nx_expanded*(Np+1)];
     real_t E[n_rows*cvp.prb->V->cols];
     real_t bdiag_jac[nx*n_cols];
@@ -384,59 +397,88 @@ real_t u_sequence[] = {-0.2620,
     real_t zx_ub[n_rows];
     real_t zx_lb[n_rows];
 
-    state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
-    pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
-    pce_jacobian_function(func_eval, jac_eval, x_pred);
-    aircraftpce_cvp_form_problem(&cvp);
+    FILE *fp;
+    fp = fopen( "xutraj.csv", "w" );
 
-    aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[nx_expanded*(Np*1)]), n_rows,
-        n_cols, cvp.prb->V->cols);
-/* v_ub contains -A*x0 */
-    mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
-
-    mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
-    mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), nx, nx_expanded, 1, Np);
-    aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
-    aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
-    aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
-    aircraftpce_mtx_add(zx_lb, ctl.alm->e_lb, v_ub_x, n_rows, 1);
-
-    for (i=0; i<25; i++) {
-    ctl.qpx->HoL[i] = cvp.prb->H->data[i] * Linv;
+    for (i=0; i<nx; i++) {
+      fprintf(fp, "x_%d, ", i);
     }
-    for (i=0; i<5; i++) {
-    ctl.qpx->gxoL[i] = cvp.prb->g->data[i] * Linv;
+    for (i=0; i<Np*1; i++) {
+      fprintf(fp, "u_%d, ", i);
     }
-    for (i=0; i<n_rows*cvp.prb->V->cols; i++) {
-    ctl.qpx->E[i+25] = E[i];
-    }
-    for (i=0; i<n_rows; i++) {
-    ctl.qpx->zx_ub[i+5] = zx_ub[i];
-    ctl.qpx->zx_lb[i+5] = zx_lb[i];
-    }
-    for (i=0; i<5; i++) {
-    ctl.qpx->zx_ub[i] = 0.;
-    ctl.qpx->zx_lb[i] = 0.;
-    }
+    fprintf(fp, "\n");
+
+    for (k=0; k<SIM_POINTS; k++) {
+        state_orig2pce(cvp.prb->x_k->data, xorig, nx, p+1);
+        pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
+        pce_jacobian_function(func_eval, jac_eval, x_pred);
+        aircraftpce_cvp_form_problem(&cvp);
+
+        aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[nx_expanded*(Np*1)]), n_rows,
+            n_cols, cvp.prb->V->cols);
+    /* v_ub contains -A*x0 */
+        mtx_bdiag2cols(bdiag_jac, jac_eval, nx, nx_expanded, Np);
+
+        mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp.prb->v_ub->data[nx_expanded]), nx, nx_expanded, 1, Np);
+        mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[nx_expanded]), nx, nx_expanded, 1, Np);
+        aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, n_rows, 1);
+        aircraftpce_mtx_substract(v_ub_x, JXpred_JAx0, func_eval, n_rows, 1);
+        aircraftpce_mtx_add(zx_ub, ctl.alm->e_ub, v_ub_x, n_rows, 1);
+        aircraftpce_mtx_add(zx_lb, ctl.alm->e_lb, v_ub_x, n_rows, 1);
+
+        for (i=0; i<25; i++) {
+        ctl.qpx->HoL[i] = cvp.prb->H->data[i] * Linv;
+        }
+        for (i=0; i<5; i++) {
+        ctl.qpx->gxoL[i] = cvp.prb->g->data[i] * Linv;
+        }
+        for (i=0; i<n_rows*cvp.prb->V->cols; i++) {
+        ctl.qpx->E[i+25] = E[i];
+        }
+        for (i=0; i<n_rows; i++) {
+        ctl.qpx->zx_ub[i+5] = zx_ub[i];
+        ctl.qpx->zx_lb[i+5] = zx_lb[i];
+        }
+        for (i=0; i<5; i++) {
+        ctl.qpx->zx_ub[i] = 0.;
+        ctl.qpx->zx_lb[i] = 0.;
+        }
 
 
-    ctl.alm->mu = &mu;
-    ctl.alm->Linv = &Linv;
-    ctl.alm->fgm->nu = &nu;
-    for (j=0; j<1; j++) {
-    ctl.conf->in_iter = in_iter;
-    ctl.conf->ex_iter = ex_iter;
-    stc_alm_minimize_qp(ctl.alm, ctl.u_opt, ctl.l_opt);
-      printf("u_opt (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
-      for (i=0; i<5; i++) {
-      printf(" %f, ", ctl.u_opt[i]);
-      }
-      printf("\n");
+        ctl.alm->mu = &mu;
+        ctl.alm->Linv = &Linv;
+        ctl.alm->fgm->nu = &nu;
+
+        for (j=0; j<1; j++) {
+        ctl.conf->in_iter = in_iter;
+        ctl.conf->ex_iter = ex_iter;
+        stc_alm_minimize_qp(ctl.alm, ctl.u_opt, ctl.l_opt);
+#if 0
+          printf("u_opt (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
+#endif
+        for (i=0; i<nx; i++) {
+            fprintf(fp, "%f, ", xorig[i]);
+            printf(" %f, ", xorig[i]);
+        }
+        printf("\n");
+        for (i=0; i<Np; i++) {
+            fprintf(fp, "%f, ", ctl.u_opt[i]);
+            printf(" %f, ", ctl.u_opt[i]);
+            u_sequence[i] = ctl.u_opt[i];
+        }
+        fprintf(fp, "\n");
+        printf("\n");
+
+        }
+
+        sym_real_system(xorig, ctl.u_opt);
+
+        stc_ctl_warmstart(&ctl);
+
     }
-    stc_ctl_warmstart(&ctl);
+    fclose(fp);
 
 
-	FILE *fp;
     fp = fopen( "Emtx.py", "w" );
 	 fprintf(fp, "V=[");
     for (i=0; i<(cvp.prb->V->rows*cvp.prb->V->cols); i++) {
