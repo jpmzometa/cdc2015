@@ -158,6 +158,8 @@ static real_t xorig[PCE_NX];
         sym_real_system(xorig, ctl.u_opt);
 
         stc_ctl_warmstart(&ctl);
-        u_sequence[i] = ctl.u_opt[i];
+        for (i=0; i<PCE_HOR; i++) {
+          u_sequence[i] = ctl.u_opt[i];
+        }
 
 }

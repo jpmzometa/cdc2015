@@ -51,7 +51,7 @@ def main():
 
 def main_C():
     steps = 60
-    runs = 1
+    runs = 100
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)
