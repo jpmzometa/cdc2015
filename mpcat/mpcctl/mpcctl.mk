@@ -13,44 +13,18 @@ ifeq ($(MPCCTL_SOLVER), $(CMPC))
 		${SYSTEM}/cmpc/mtx_ops.c \
 		${SYSTEMPCE}/aircraftpcecvp.c \
 		${SYSTEMPCE}/aircraftpcemtxops.c \
+		${SYSTEM}/pce/pce.c \
 
 	SOLVERINC = ${SYSTEM}/cmpc/include \
+							${SYSTEM}/pce/include \
 							${SYSTEMPCE}/include
-endif
-
-ifeq ($(MPCCTL_SOLVER), $(CVXGEN_MPC))
-	SOLVER = ${SYSTEM}/cvxgen_mpc/ldl.c \
-		${SYSTEM}/cvxgen_mpc/matrix_support.c \
-		${SYSTEM}/cvxgen_mpc/util.c \
-		${SYSTEM}/cvxgen_mpc/solver.c \
-		${SYSTEM}/cmpc/mpc_inc.c \
-		${SYSTEM}/cmpc/mpc_stc.c \
-		${SYSTEM}/cmpc/mpc_ref.c \
-		${SYSTEM}/cmpc/mpc.c \
-		${SYSTEM}/cmpc/mtx_ops.c
-
-	SOLVERINC = ${SYSTEM}/cmpc/include \
-		 ${SYSTEM}/cvxgen_mpc
-endif
-
-ifeq ($(MPCCTL_SOLVER), $(CVXGEN_QPX))
-	SOLVER = ${SYSTEM}/cvxgen_qpx/ldl.c \
-		${SYSTEM}/cvxgen_qpx/matrix_support.c \
-		${SYSTEM}/cvxgen_qpx/util.c \
-		${SYSTEM}/cvxgen_qpx/solver.c \
-		${SYSTEM}/cmpc/mpc_inc.c \
-		${SYSTEM}/cmpc/mpc_stc.c \
-		${SYSTEM}/cmpc/mpc_ref.c \
-		${SYSTEM}/cmpc/mpc.c \
-		${SYSTEM}/cmpc/mtx_ops.c
-
-	SOLVERINC = ${SYSTEM}/cmpc/include \
-		 ${SYSTEM}/cvxgen_qpx
 endif
 
 # List of all the board related files.
 MPCCTLSRC = ${CHIBIOS}/mpcctl/mpcctl.c \
 				 ${SYSTEM}/cmpc/mpc_const.c \
+				 ${SYSTEM}/pce/pcedata.c \
+				 ${SYSTEM}/pce/sysmtx.c \
 				 ${SYSTEMPCE}/aircraftpcecvpdata.c \
 				 ${SOLVER}
 

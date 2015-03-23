@@ -3,11 +3,7 @@
 # NOTE: Can be overridden externally.
 #
 CMPC = 1
-CVXGEN_QPX = 2
-CVXGEN_MPC = 3
 AIRCRAFT = 11
-LEGOARM = 12
-GTCAR1 = 13
 # Choose here your solver and system from the list above.
 # They influence the behaviour of mpcctl.mk, UDEFS,...
 MPCCTL_SOLVER = $(CMPC)
@@ -54,9 +50,6 @@ include $(CHIBIOS)/mpcctl/mpcctl.mk
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CSRC = $(MPCCTLSRC) \
-			 pce.c \
-			 pcedata.c \
-			 sysmtx.c \
        main.c
 
 

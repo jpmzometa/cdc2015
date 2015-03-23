@@ -60,7 +60,7 @@ def main_C():
     nviol = np.zeros(runs)
     shutil.os.chdir('../../../src/pc/')
     for s, ps in enumerate(uncert):
-        write_c_sys('', ps)
+        write_c_sys('../../mpcctl/systems/aircraft/pce/', ps)
         call(['make'])
         call(['./main'])
         xu = np.genfromtxt('xutraj.csv', delimiter=',', skiprows=1)
