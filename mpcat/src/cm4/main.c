@@ -32,7 +32,7 @@ Thread* ImThread;
 
 /* current states of the emulated system */
 #ifdef AIRCRAFT
-struct aircraftpce_cvp cvp;
+extern struct aircraftpce_cvp cvp;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
 enum {SIM_POINTS = 40};  /* this should match the value in rs.py */
 #endif

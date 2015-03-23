@@ -5,6 +5,7 @@
 #include <aircraftpcecvp.h>
 #include <aircraftpcecvpdata.h>
 #include <pce.h>
+#include <mpcpce.h>
 
 
 void mpcctl(void)
