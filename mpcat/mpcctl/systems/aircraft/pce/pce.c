@@ -141,7 +141,7 @@ void mtx_multiply_block_diagonal(real_t pout[], const real_t pmtxA[],
 		const uint32_t colsA,
     		const uint32_t colsB, const uint32_t Nblocks)
 {
-	uint32_t i,j; /* loop counters */
+	uint32_t i; /* loop counters */
 
 	for (i = 0; i < Nblocks; i++) {
       aircraftpce_mtx_multiply_mtx_mtx(

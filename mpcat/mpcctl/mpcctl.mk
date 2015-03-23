@@ -14,6 +14,7 @@ ifeq ($(MPCCTL_SOLVER), $(CMPC))
 		${SYSTEMPCE}/aircraftpcecvp.c \
 		${SYSTEMPCE}/aircraftpcemtxops.c \
 		${SYSTEM}/pce/pce.c \
+		${SYSTEM}/pce/mpcpce.c \
 
 	SOLVERINC = ${SYSTEM}/cmpc/include \
 							${SYSTEM}/pce/include \

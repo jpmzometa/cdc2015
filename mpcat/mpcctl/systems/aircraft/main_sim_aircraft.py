@@ -8,16 +8,17 @@ from pudb import set_trace
 import muaompc
 from compute_system_matrices import get_sys, write_c_sys
 
+
 def store_current_step_data(mpc, data, xk, uk, k):
     data.t[k] = mpc.sys.dt * k
     data.x[:, k] = xk
     data.u0[:, k] = uk
 
 def main():
+    steps = 60
+    runs = 1
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
 # configure the controller
-    steps = 60
-    runs = 100
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)
     mpc.ctl.conf.in_iter = 5
@@ -42,16 +43,16 @@ def main():
         mpc.sim.data = data
         costs[s] = comp_cost(mpc)
         nviol[s] = comp_violations(mpc)
-    print(np.mean(costs))
-    print(np.mean(nviol))
+    print("mean cost: ", np.mean(costs))
+    print("mean viol: ", np.mean(nviol))
     plot_results(mpc.sim.data)
-    print(comp_cost(mpc))
-    print(comp_violations(mpc))
+    print("last cost: ", comp_cost(mpc))
+    print("last viol: ", comp_violations(mpc))
 
 def main_C():
-    mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
     steps = 60
-    runs = 100
+    runs = 1
+    mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)
 
@@ -68,7 +69,7 @@ def main_C():
         u0 = xu[:,5:6]
         data = deepcopy(data_base)
         if (len(u0) != steps):
-            print('WARNING! simulation steps in C files differ from current steps.') 
+            print('WARNING! simulation steps in C files differ from current steps.')
             steps = len(u0)
 
         for k in range(steps):
@@ -78,11 +79,11 @@ def main_C():
         nviol[s] = comp_violations(mpc)
     shutil.os.chdir('../../mpcctl/systems/aircraft/')
 
-    print(np.mean(costs))
-    print(np.mean(nviol))
+    print("mean cost: ", np.mean(costs))
+    print("mean viol: ", np.mean(nviol))
     plot_results(mpc.sim.data)
-    print(comp_cost(mpc))
-    print(comp_violations(mpc))
+    print("last cost: ", comp_cost(mpc))
+    print("last viol: ", comp_violations(mpc))
 
 
 def comp_cost(mpc):
@@ -98,14 +99,17 @@ def comp_cost(mpc):
     return 0.5 * stage_cost
 
 def comp_violations(mpc):
-    tol = 1e-4
+    tol = 1e-9
     x = mpc.sim.data.x[1,:]
     e_ub = mpc.constr.e_ub[0]
-    k = 0
+    z = 0
+    #rint("x", x)
+    #rint("e", e_ub)
     for j in mpc.sim.data.t:
         if (x[j]-e_ub) > tol:
-            k +=1
-    return k
+            print("viol")
+            z +=1
+    return z
 
 def plot_results(data):
     import matplotlib.pyplot as plt
