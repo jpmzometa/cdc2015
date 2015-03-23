@@ -13,7 +13,6 @@ void mpcpce_solve_problem(void)
 
     static uint32_t init = 1;
     uint32_t i;
-    aircraftpce_initialize_problem_structure(&cvp);
     real_t mu = 1.2;
     real_t Linv = 0.031128858194943453;
     real_t nu = 0.79668083435185955;
@@ -25,7 +24,7 @@ void mpcpce_solve_problem(void)
     real_t jac_eval[PCE_JAC_ROWS*PCE_JAC_COLS]; 	// The jabocian in a flat vector
 
     real_t x_pred[PCE_NXE*(PCE_HOR+1)];
-    real_t E[PCE_JAC_ROWS*cvp.prb->V->cols];
+    real_t E[PCE_JAC_ROWS*PCE_HOR];
     real_t bdiag_jac[PCE_NX*PCE_JAC_COLS];
     real_t JXpred[PCE_JAC_ROWS];
     real_t JAx0[PCE_JAC_ROWS];
@@ -100,6 +99,7 @@ static real_t u_sequence[PCE_HOR];
 static real_t xorig[PCE_NX];
 
     if (init) {
+    aircraftpce_initialize_problem_structure(&cvp);
       for (i=0; i<PCE_HOR; i++) {
       u_sequence[i] = -0.2620;
       }
