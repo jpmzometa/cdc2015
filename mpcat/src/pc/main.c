@@ -16,68 +16,8 @@
 #ifdef AIRCRAFT
 struct aircraftpce_cvp cvp;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
-enum {SIM_POINTS = 60};  /* this should match the value in rs.py */
+enum {SIM_POINTS = 1};  /* this should match the value in rs.py */
 #endif
-void mtx_multiply_block_diagonal(real_t pout[], const real_t pmtxA[],
-		const real_t pmtxB[],
-		const uint32_t rowsA,
-		const uint32_t colsA,
-    		const uint32_t colsB, const uint32_t Nblocks)
-{
-	uint32_t i,j; /* loop counters */
-
-	for (i = 0; i < Nblocks; i++) {
-      aircraftpce_mtx_multiply_mtx_mtx(
-          &(pout[(colsB*rowsA*i)]),
-          &(pmtxA[(colsA*rowsA*i)]),
-          &(pmtxB[(colsB*colsA*i)]),
-          rowsA, colsA, colsB);
-  }
-	return;
-}
-
-void mtx_bdiag2cols(real_t pout[], const real_t pmtx[],
-		const uint32_t rows,
-		const uint32_t cols,
-    const uint32_t blocks)
-{
-	uint32_t i,j,k; /* loop counters */
-
-	for (i = 0; i < blocks; i++) {
-    for (j=0; j<rows; j++) {
-      for (k=0; k<cols; k++) {
-          pout[cols*rows*i + cols*j + k] =
-          pmtx[blocks*cols*rows*i + cols*i + blocks*cols*j + k];
-      }
-  }
-  }
-	return;
-}
-
-void state_orig2pce(real_t xpce[], const real_t xorig[], const uint32_t n, const uint32_t p)
-{
-	uint32_t i,j; /* loop counters */
-	for (i = 0; i < n; i++) {
-
-    for (j=0; j<p; j++) {
-      xpce[i*n+j] = 0.;
-    }
-    xpce[i*p] = xorig[i];
-  }
-}
-void sym_real_system(real_t x_k[], real_t u_k[]) {
-  uint32_t n = 5;
-  uint32_t m = 1;
-  real_t out_state[n];
-  real_t out_control[n];
-  extern real_t A_nom[];
-  extern real_t B_nom[];
-	  mtx_multiply_mtx_vec(out_state, A_nom, x_k, n, n);
-	  mtx_multiply_mtx_vec(out_control, B_nom, u_k, n, m);
-	  mtx_add(x_k, out_state, out_control, n, 1);
-    return;
-}
-
 real_t inputs[MPC_HOR_INPUTS];
 int32_t k = 0;  /* simulation mark */
 
@@ -96,192 +36,6 @@ uint64_t get_time_stamp(void) {
 
 int main(void)
 {
-#if 0
-  extern real_t x_measured_expanded[];
-  extern real_t x[];
-  extern real_t u_sequence[];
-#endif
-  real_t x[] = {0.131676852301864,
-0,
-0,
-0,
-0,
-0,
-0.342162647496714,
-0,
-0,
-0,
-0,
-0,
-0.328054300903874,
-0,
-0,
-0,
-0,
-0,
--382.970735187983,
-0,
-0,
-0,
-0,
-0,
--0.110467615734654,
-0,
-0,
-0,
-0,
-0,
-0.208659597518526,
-0,
-0.00791967761716606,
-0,
-0,
-0,
-0.520830785156651,
--0.00816396484271556,
-0.00927181769814564,
-0,
-0,
-0,
-0.347924289960257,
-0,
-0.0288456550608975,
-0,
-0,
-0,
--366.515930656995,
--1.07316634626019,
-0.0115897721226820,
-0,
-0,
-0,
--0.0965814343556837,
-0,
--0.00643876229037891,
-0,
-0,
-0,
-0.0850928411841191,
-0,
-0.00524684113562684,
-0,
-0,
-0,
-0.505881859527193,
--0.0211008598888642,
-0.0120295502482132,
-0,
--0.000491020012264296,
-0,
--0.255486989902352,
-0,
--0.0103159657650955,
-0,
-0,
-0,
--342.538197243257,
--3.29705221245424,
-0.285265030437065,
-0,
--0.0645453725799034,
-0,
-0.0217132733623855,
-0,
-0.00144755155749237,
-0,
-0,
-0,
-0.0262256704940051,
-0,
-0.00284209750213578,
-0,
-0,
-0,
-0.465380663415352,
--0.0263766160422796,
-0.0113014031280033,
-0,
--0.000816324162673160,
-0,
-0.0673315274428519,
-0,
-0.00584411682181828,
-0,
-0,
-0,
--314.810210222130,
--5.34312398698101,
-0.780041587652672,
-0,
--0.138781510621403,
-0,
--0.0417602972793653,
-0,
--0.00278401981862436,
-0,
-0,
-0,
--0.00241161731025181,
-0,
-0.000341876467750994,
-0,
-0,
-0,
-0.449611565589663,
--0.0280026076129079,
-0.0102092103450005,
-0,
--0.000992534207805578,
-0,
--0.0918703873324738,
-0,
--0.00701908134607935,
-0,
-0,
-0,
--286.130390144514,
--7.24760428981727,
-1.37749278560798,
-0,
--0.214270984091160,
-0,
-0.0168004588968672,
-0,
-0.00112003059312448,
-0,
-0,
-0,
--0.00946697006274020,
-0,
--0.000670198975836950,
-0,
-0,
-0,
-0.434440075335659,
--0.0278530873396723,
-0.00876930651464565,
-0,
--0.00101373054880614,
-0,
-0.0167974056554676,
-0,
-0.000497882546990299,
-0,
-0,
-0,
--257.401929142486,
--9.02291675672611,
-1.99906764694276,
-0,
--0.280678720023668,
-0,
--0.00606693936552058,
-0,
--0.000404462624368039,
-0,
-0,
-0};
-  
 
 real_t A_sys[] = {0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 0,	0.239000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0.178000000000000,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
@@ -448,10 +202,6 @@ real_t u_sequence[] = {-0.2620,
         ctl.conf->in_iter = in_iter;
         ctl.conf->ex_iter = ex_iter;
         stc_alm_minimize_qp(ctl.alm, ctl.u_opt, ctl.l_opt);
-#if 0
-          printf("u_opt (iter:%d x %d ): ", ctl.conf->in_iter, ctl.conf->ex_iter);
-        printf("k:%d \n", k);
-#endif
         for (i=0; i<nx; i++) {
             fprintf(fp, "%f, ", xorig[i]);
 #if 0
@@ -460,7 +210,7 @@ real_t u_sequence[] = {-0.2620,
         }
         for (i=0; i<Np; i++) {
             fprintf(fp, "%f, ", ctl.u_opt[i]);
-#if 0
+#if 1
             printf(" %f, ", ctl.u_opt[i]);
 #endif
             u_sequence[i] = ctl.u_opt[i];
@@ -492,11 +242,6 @@ real_t u_sequence[] = {-0.2620,
 	 fprintf(fp, "f=[");
     for (i=0; i<(n_rows); i++) {
          fprintf(fp, "%f,", func_eval[i]);
-    }
-	 fprintf(fp, "]\n");
-	 fprintf(fp, "x_pred=[");
-    for (i=0; i<(nx_expanded*(Np+1)); i++) {
-         fprintf(fp, "%f,", x[i]);
     }
 	 fprintf(fp, "]\n");
 	 fprintf(fp, "e_ub=[");

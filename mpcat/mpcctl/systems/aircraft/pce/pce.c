@@ -1,20 +1,7 @@
 #include <math.h>  /* sqrt */
-#include <stdio.h>
-#include <mtx_ops.h>
+#include <aircraftpcemtxops.h>
 
-extern void pce_sqrt(real_t out[], real_t mtx[], real_t vec[], uint32_t rows, uint32_t cols) {
-
-  uint32_t i;
-  mtx_multiply_mtx_vec(out, mtx, vec, rows, cols);
-
-  for (i=0; i<rows; i++) {
-    out[i] = sqrt(out[i]);
-  }
-
-  return;
-}
-
-extern void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t x[]) {
+void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t x[]) {
 // The only external input which is needed is the vector of expanded states 
   
   uint32_t i,j,k,l, index_mean, p, nx, Np, offset, n_rows, n_cols;
@@ -57,7 +44,7 @@ extern void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t 
   return;
 }
 
-extern void pce_jacobian_function_reduced(real_t func_eval[], real_t jac_eval[], real_t x[]) {
+void pce_jacobian_function_reduced(real_t func_eval[], real_t jac_eval[], real_t x[]) {
 // The only external input which is needed is the vector of expanded states 
   
   uint32_t i,j,k,l, index_mean, p, nx, Np, offset, n_rows, n_cols, ng, offset_col;
@@ -105,7 +92,7 @@ extern void pce_jacobian_function_reduced(real_t func_eval[], real_t jac_eval[],
 }
 
 
-extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], real_t A_sys[], real_t B_sys[], real_t u_sequence[]) {
+void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], real_t A_sys[], real_t B_sys[], real_t u_sequence[]) {
 
   uint32_t i, j, Np, nx, p, nu, nx_expanded;
   p = 5; // This is the number of elements of the expansion
@@ -132,9 +119,9 @@ extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], re
   }	
   // Simulate the system to get the rest of the prediction
   for (i=1; i < Np+1; i++) {
-	  mtx_multiply_mtx_vec(out_state, A_sys, x_0, nx_expanded, nx_expanded);
-	  mtx_multiply_mtx_vec(out_control, B_sys, &(u_sequence[i-1]), nx_expanded, nu);
-	  mtx_add(x_next,out_state, out_control, nx_expanded, 1);
+	  aircraftpce_mtx_multiply_mtx_vec(out_state, A_sys, x_0, nx_expanded, nx_expanded);
+	  aircraftpce_mtx_multiply_mtx_vec(out_control, B_sys, &(u_sequence[i-1]), nx_expanded, nu);
+	  aircraftpce_mtx_add(x_next,out_state, out_control, nx_expanded, 1);
 	  //x_0 = x_next;
 	  for (j = 0; j < nx_expanded; j++){	
 		  x_0[j] = x_next[j];
@@ -143,4 +130,69 @@ extern void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], re
   }
 
   return;
+}
+
+
+/* Auxiliary matrix operations */
+
+void mtx_multiply_block_diagonal(real_t pout[], const real_t pmtxA[],
+		const real_t pmtxB[],
+		const uint32_t rowsA,
+		const uint32_t colsA,
+    		const uint32_t colsB, const uint32_t Nblocks)
+{
+	uint32_t i,j; /* loop counters */
+
+	for (i = 0; i < Nblocks; i++) {
+      aircraftpce_mtx_multiply_mtx_mtx(
+          &(pout[(colsB*rowsA*i)]),
+          &(pmtxA[(colsA*rowsA*i)]),
+          &(pmtxB[(colsB*colsA*i)]),
+          rowsA, colsA, colsB);
+  }
+	return;
+}
+
+void mtx_bdiag2cols(real_t pout[], const real_t pmtx[],
+		const uint32_t rows,
+		const uint32_t cols,
+    const uint32_t blocks)
+{
+	uint32_t i,j,k; /* loop counters */
+
+	for (i = 0; i < blocks; i++) {
+    for (j=0; j<rows; j++) {
+      for (k=0; k<cols; k++) {
+          pout[cols*rows*i + cols*j + k] =
+          pmtx[blocks*cols*rows*i + cols*i + blocks*cols*j + k];
+      }
+  }
+  }
+	return;
+}
+
+void state_orig2pce(real_t xpce[], const real_t xorig[], const uint32_t n, const uint32_t p)
+{
+	uint32_t i,j; /* loop counters */
+	for (i = 0; i < n; i++) {
+
+    for (j=0; j<p; j++) {
+      xpce[i*n+j] = 0.;
+    }
+    xpce[i*p] = xorig[i];
+  }
+}
+
+void sym_real_system(real_t x_k[], real_t u_k[])
+{
+  uint32_t n = 5;
+  uint32_t m = 1;
+  real_t out_state[n];
+  real_t out_control[n];
+  extern real_t A_nom[];
+  extern real_t B_nom[];
+	  aircraftpce_mtx_multiply_mtx_vec(out_state, A_nom, x_k, n, n);
+	  aircraftpce_mtx_multiply_mtx_vec(out_control, B_nom, u_k, n, m);
+	  aircraftpce_mtx_add(x_k, out_state, out_control, n, 1);
+    return;
 }
