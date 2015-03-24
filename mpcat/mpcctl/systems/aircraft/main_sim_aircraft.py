@@ -129,4 +129,4 @@ def plot_results(data):
     return
 
 if __name__ == '__main__':
-    main()
+    main_C()

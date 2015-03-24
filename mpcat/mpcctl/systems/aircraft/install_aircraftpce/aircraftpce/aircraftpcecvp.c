@@ -5,7 +5,7 @@
 static void aircraftpce_copy_data(struct aircraftpce_term *dest, struct aircraftpce_term *src);
 
 void aircraftpce_cvp_form_problem(struct aircraftpce_cvp *cvp)  {
-  int i, j;
+  uint32_t i, j;
   struct aircraftpce_pmetric *pm;
 
     for (i=0; i<AIRCRAFTPCE_PMETRIC_NUM; i++) {
@@ -21,7 +21,7 @@ void aircraftpce_cvp_form_problem(struct aircraftpce_cvp *cvp)  {
 }
 
 void aircraftpce_copy_data(struct aircraftpce_term *dest, struct aircraftpce_term *src)  {
-    int j;
+    uint32_t j;
         for (j=0; j<(dest->cols*dest->rows); j++) {
             dest->data[j] = src->data[j];
       }

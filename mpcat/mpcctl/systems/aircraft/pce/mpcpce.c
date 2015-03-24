@@ -2,7 +2,7 @@
 #include <aircraftpcecvpdata.h>
 #include <aircraftpcemtxops.h>
 #include <pce.h>
-#include <pcedata.h>
+#include <pcesysmtx.h>
 
 struct aircraftpce_cvp cvp;
 

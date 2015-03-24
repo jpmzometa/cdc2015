@@ -5,12 +5,11 @@
 CMPC = 1
 CVXGEN = 2
 AIRCRAFT = 11
-LEGOARM = 12
-GTCAR1 = 13
+AIRCRAFTNOM= 12
 # Choose here your solver and system from the list above.
 # They influence the behaviour of mpcctl.mk, UDEFS,...
 MPCCTL_SOLVER = $(CMPC)
-MPCCTL_SYSTEM = $(AIRCRAFT)
+MPCCTL_SYSTEM = $(AIRCRAFTNOM)
 
 # Compiler options here.
 ifeq ($(USE_OPT),)

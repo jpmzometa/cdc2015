@@ -10,10 +10,8 @@ class System(object):
         self.hor_inputs = hor_inputs
         self.samples = samples
 
-legoarm = System(4, 10, 400)
-aircraft = System(10*5, 5, 2)
-gtcar1 = System(3, 10, 800)
-aircraft_pce = System(10*5, 5, 20)
+aircraft = System(5, 5, 5)
+aircraft_pce = System(5, 5, 5)
 #ystem = aircraft
 #ystem = legoarm
 system = aircraft_pce
