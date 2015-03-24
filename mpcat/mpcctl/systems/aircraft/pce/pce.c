@@ -1,5 +1,6 @@
 #include <math.h>  /* sqrt */
 #include <aircraftpcemtxops.h>
+#include <pce.h>
 
 void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t x[]) {
 // The only external input which is needed is the vector of expanded states 
@@ -16,8 +17,10 @@ void pce_jacobian_function(real_t func_eval[], real_t jac_eval[], real_t x[]) {
   
   n_rows = nx * Np; // Rows of the function evaluation and of the Jacobian
   n_cols = (p+1) * nx * Np; // Columns of the Jacobian
-  //real_t func_eval[n_rows]; 			// This is the first output of this function
-  //real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
+
+	for (i=0; i<PCE_JAC_ROWS*PCE_JAC_COLS; i++) {
+	       	jac_eval[i]=0.;
+	}
   for (k=1; k<Np + 1; k++) { 				// for all the prediction horizon except the first stage
 	for (i = 0; i < nx; i++){			// for all the states
 		index_mean = (k)*nx*(p+1) + ((i)*(p+1));
@@ -60,8 +63,9 @@ void pce_jacobian_function_reduced(real_t func_eval[], real_t jac_eval[], real_t
   ng = 2;  // Number of constraints
   n_rows = ng * Np; // Rows of the function evaluation and of the Jacobian. Only two constraints!
   n_cols = (p+1) * nx * Np; // Columns of the Jacobian
-  //real_t func_eval[n_rows]; 			// This is the first output of this function
-  //real_t jac_eval[n_rows*n_cols]; 	// The jabocian in a flat vector
+	for (i=0; i<PCE_JAC_ROWS*PCE_JAC_COLS; i++) {
+	       	jac_eval[i]=0.;
+	}
   for (k=1; k<Np + 1; k++) { 				// for all the prediction horizon except the first stage
 	for (i = 0; i < nx; i++){			// for all the states
 		index_mean = (k)*nx*(p+1) + ((i)*(p+1));
@@ -92,7 +96,7 @@ void pce_jacobian_function_reduced(real_t func_eval[], real_t jac_eval[], real_t
 }
 
 
-void pce_get_prediction(real_t x_pred[], real_t x_measured_expanded[], real_t A_sys[], real_t B_sys[], real_t u_sequence[]) {
+void pce_get_prediction(real_t x_pred[], real_t u_sequence[], const real_t x_measured_expanded[], const real_t A_sys[], const real_t B_sys[]) {
 
   uint32_t i, j, Np, nx, p, nu, nx_expanded;
   p = 5; // This is the number of elements of the expansion
@@ -176,10 +180,10 @@ void state_orig2pce(real_t xpce[], const real_t xorig[], const uint32_t n, const
 	uint32_t i,j; /* loop counters */
 	for (i = 0; i < n; i++) {
 
-    for (j=0; j<p; j++) {
-      xpce[i*n+j] = 0.;
-    }
-    xpce[i*p] = xorig[i];
+	    for (j=0; j<p; j++) {
+		      xpce[i*n+j] = 0.;
+	    }
+	    xpce[i*p] = xorig[i];
   }
 }
 

@@ -16,13 +16,13 @@ def store_current_step_data(mpc, data, xk, uk, k):
 
 def main():
     steps = 60
-    runs = 100
+    runs = 1000
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
 # configure the controller
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)
     mpc.ctl.conf.in_iter = 5
-    mpc.ctl.conf.ex_iter = 10 
+    mpc.ctl.conf.ex_iter = 20 
     mpc.ctl.conf.warmstart = True
 
     x_ini = np.zeros(mpc.size.states)
@@ -51,7 +51,7 @@ def main():
 
 def main_C():
     steps = 60
-    runs = 100
+    runs = 1000
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)
@@ -67,6 +67,7 @@ def main_C():
         xu = np.genfromtxt('xutraj.csv', delimiter=',', skiprows=1)
         x = xu[:,0:5]
         u0 = xu[:,5:6]
+        dt = xu[:,10:11];
         data = deepcopy(data_base)
         if (len(u0) != steps):
             print('WARNING! simulation steps in C files differ from current steps.')
@@ -81,6 +82,7 @@ def main_C():
 
     print("mean cost: ", np.mean(costs))
     print("mean viol: ", np.mean(nviol))
+    print("mean dt: ", np.mean(dt))
     plot_results(mpc.sim.data)
     print("last cost: ", comp_cost(mpc))
     print("last viol: ", comp_violations(mpc))
@@ -99,7 +101,7 @@ def comp_cost(mpc):
     return 0.5 * stage_cost
 
 def comp_violations(mpc):
-    tol = 1e-6
+    tol = 1e-4
     x = mpc.sim.data.x[1,:]
     e_ub = mpc.constr.e_ub[0]
     z = 0

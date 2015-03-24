@@ -15,7 +15,7 @@
 
 /* current states of the simulated system */
 #ifdef AIRCRAFT
-extern struct aircraftpce_cvp cvp;
+struct aircraftpce_cvp cvp;
 extern struct mpc_ctl ctl;
 real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
 enum {SIM_POINTS = 60};  
@@ -37,6 +37,7 @@ uint64_t get_time_stamp(void) {
 int main(void)
 {
   uint32_t i;
+  uint64_t t1, t2, dt;
 
     FILE *fp;
     fp = fopen( "xutraj.csv", "w" );
@@ -67,9 +68,13 @@ int main(void)
         for (i=0; i<_hnu_; i++) {
             fprintf(fp, "%f, ", ctl.u_opt[i]);
         }
-        fprintf(fp, "\n");
 
+	t1 = get_time_stamp();
         mpcctl();
+	t2 = get_time_stamp();
+	dt = t2 - t1;
+        fprintf(fp, "%f ", (double)dt);
+        fprintf(fp, "\n");
     }
 
     fclose(fp);
