@@ -8,16 +8,17 @@ real_t xorig_k[PCE_NX];
 
 void mpcpce_solve_problem(void)
 {
-    extern real_t states;
+    extern real_t states[];
+    extern real_t inputs[];
     extern struct mpc_ctl ctl;
 
     static uint32_t init = 1;
     uint32_t i;
-    real_t mu = 1.2;
-    real_t Linv = 0.031128858194943453;
-    real_t nu = 0.79668083435185955;
+    real_t mu = 1.4;
+    real_t Linv = 0.030021378282011981;
+    real_t nu = 0.79996534344746051;
     uint32_t in_iter = 5;
-    uint32_t ex_iter = 15;
+    uint32_t ex_iter = 10;
 
     //Define the output arrays and the input data
     real_t func_eval[PCE_JAC_ROWS]; 			// This is the first output of this function
@@ -109,11 +110,11 @@ static real_t xorig[PCE_NX];
       xorig[3] =  -400.;
       init=0;
     }
+	for (i=0; i<PCE_JAC_ROWS*PCE_JAC_COLS; i++) jac_eval[i]=0.;
         state_orig2pce(cvp.prb->x_k->data, xorig, PCE_NX, PCE_P+1);
         pce_get_prediction(x_pred, cvp.prb->x_k->data, A_sys, B_sys, u_sequence);
         pce_jacobian_function_reduced(func_eval, jac_eval, x_pred);
         aircraftpce_cvp_form_problem(&cvp);
-
         aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp.prb->V->data[PCE_NXE*(PCE_HOR*1)]), PCE_JAC_ROWS,
             PCE_JAC_COLS, cvp.prb->V->cols);
     /* v_ub contains -A*x0 */
@@ -135,6 +136,9 @@ static real_t xorig[PCE_NX];
         for (i=0; i<PCE_JAC_ROWS*cvp.prb->V->cols; i++) {
         ctl.qpx->E[i+PCE_NCX*PCE_HOR] = E[i];
         }
+	for (i=0; i<PCE_JAC_ROWS*PCE_HOR; i++) {
+		states[i] = ctl.qpx->E[i+PCE_NCX*PCE_HOR];
+	}
         for (i=0; i<PCE_JAC_ROWS; i++) {
         ctl.qpx->zx_ub[i+PCE_NCX] = zx_ub[i];
         ctl.qpx->zx_lb[i+PCE_NCX] = zx_lb[i];
@@ -160,6 +164,8 @@ static real_t xorig[PCE_NX];
         stc_ctl_warmstart(&ctl);
         for (i=0; i<PCE_HOR; i++) {
           u_sequence[i] = ctl.u_opt[i];
+	  inputs[i] = ctl.u_opt[i];
         }
-
+#if 0
+#endif
 }

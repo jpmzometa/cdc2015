@@ -12,6 +12,7 @@
 #include "hal.h"
 #include "test.h"
 #include <mpc_const.h>
+#include <pce.h>
 
 /*
  * Console output.
@@ -107,7 +108,7 @@ void output_number(void *p, msg_t Time)
         extern int32_t k;
         usr_intprint(&k);
         usr_intprint(&Time);
-        for(i=0; i<MPC_STATES; i++)
+        for(i=0; i<PCE_JAC_ROWS*PCE_HOR; i++)
           usr_fprint(&states[i]);
         for(i=0; i<MPC_HOR_INPUTS; i++)
           usr_fprint(&inputs[i]);

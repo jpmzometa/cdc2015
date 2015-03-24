@@ -18,8 +18,8 @@ void mpcctl(void)
 
       uint32_t i; /* loop iterator */
       if (init) {
-              ctl.conf->in_iter = 1;  /* iterations internal loop */
-              ctl.conf->ex_iter = 4;  /* iterations external loop */
+              ctl.conf->in_iter = 5;  /* iterations internal loop */
+              ctl.conf->ex_iter = 10;  /* iterations external loop */
               ctl.conf->warmstart = 1;  /* warmstart each iteration */
               init = 0;
       }
@@ -28,7 +28,7 @@ void mpcctl(void)
 #else
       mpcpce_solve_problem();
 #endif
-
+#if 0
       for (i=0; i<MPC_STATES; i++) {
               cvp.prb->x_k->data[i] = states[i];
       }
@@ -37,6 +37,7 @@ void mpcctl(void)
       for(i=0; i<MPC_HOR_INPUTS; i++) {
               inputs[i] = ctl.u_opt[i];
       }
+#endif
       return;
 }
 

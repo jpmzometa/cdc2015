@@ -20,9 +20,10 @@
 #include <mpcctl.h>
 #include <aircraftpcecvp.h>
 #include <aircraftpcecvpdata.h>
+#include <pce.h>
 
-#define MPC_Thread_Space 1020
-#define Com_Thread_Space 1028
+#define MPC_Thread_Space 32020
+#define Com_Thread_Space 2028
 #define MPC_Thread_Deadline 500 /* milliseconds */
 //#define USER_BOTTOM /* uncomment to enable the function of user bottom */
 static WORKING_AREA(waThreadMpc, MPC_Thread_Space);
@@ -33,17 +34,18 @@ Thread* ImThread;
 /* current states of the emulated system */
 #ifdef AIRCRAFT
 extern struct aircraftpce_cvp cvp;
-real_t states[MPC_STATES] = {0.0,0.0,0.0,-400.0,0.0}; /* initial state */
-enum {SIM_POINTS = 40};  /* this should match the value in rs.py */
+real_t states_[] = {0.0, 0.0, 0.0, -400.0, 0.0}; /* initial state */
+real_t states[PCE_JAC_ROWS*PCE_HOR];
+enum {SIM_POINTS = 20};  /* this should match the value in rs.py */
 #endif
 
-real_t inputs[MPC_HOR_INPUTS];
+real_t inputs[PCE_HOR];
 int32_t k = 0;  /* simulation mark */
 
 struct mpc_data
 {
-  real_t states[MPC_STATES];
-  real_t inputs[MPC_HOR_INPUTS];
+  real_t states[PCE_JAC_ROWS*PCE_HOR];
+  real_t inputs[PCE_HOR];
   int32_t k;
 } mpc_save[SIM_POINTS];
 
@@ -68,19 +70,28 @@ static msg_t ThreadMpc(void *arg) {
     /* Timer configure */
     TIM2_Configuration();
     /* Insert ms delay */
+#if 1
+    /* Use this to check the time you are measuring is right 
+     * chThdSleepMilliseconds(123);
+     */
     mpcctl();
+#endif
     /* error compensate and unit transformation*/
     MTime = TIM2_Read(); 
     /* send message to the print thread */
     chMsgSend(ImThread, (msg_t)MTime);
     /* save the data into RAM */
+#if 0
     if(k<SIM_POINTS)
     {
-      for(i=0;i<MPC_STATES;i++)
+      for(i=0;i<PCE_NX;i++) {
         mpc_save[k].states[i] = states[i];
-      for(i=0;i<MPC_HOR_INPUTS;i++)
+	      }
+      for(i=0;i<PCE_HOR;i++){
         mpc_save[k].inputs[i] = inputs[i];
+      }
     }
+#endif
     k++;
     chThdSleepUntil(time);
   }
@@ -135,8 +146,9 @@ int main(void) {
    */
   halInit();
   chSysInit();
-  
+#if 0 
   aircraftpce_initialize_problem_structure(&cvp);
+#endif
   /*
    * Activates the serial driver 2 using the driver default configuration.
    * PA2(TX) and PA3(RX) are routed to USART2.

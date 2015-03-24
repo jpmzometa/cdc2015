@@ -1,7 +1,6 @@
 #ifndef PCE_H
 #define PCE_H
-#include <mpcctl.h>
-
+#include <mpc.h>
 enum {
     PCE_P = 5, // This is the number of elements of the expansion
     PCE_NX = 5, // Number of states of the original system

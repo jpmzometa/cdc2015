@@ -64,7 +64,7 @@ def main():
     return ctl
 def test_qpoases():
     ROWS, COLS = (0,1)
-    from qpoases import PyQProblem as QProblem
+    #rom qpoases import PyQProblem as QProblem
     import Emtx
     E = np.array(Emtx.E).reshape((10, 5))
     H = np.array(Emtx.H).reshape((5, 5))
@@ -95,7 +95,7 @@ def test_qpoases():
 
 
 def compute_muaompc_constants(H, E):
-    mues = [1., 1.1e0, 1.2, 1.3]
+    mues = [1., 1.1e0, 1.2, 1.3, 1.4]
     Linv = []
     nu = []
     for mu in mues:

@@ -16,13 +16,13 @@ def store_current_step_data(mpc, data, xk, uk, k):
 
 def main():
     steps = 60
-    runs = 1
+    runs = 100
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
 # configure the controller
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)
     mpc.ctl.conf.in_iter = 5
-    mpc.ctl.conf.ex_iter = 15
+    mpc.ctl.conf.ex_iter = 10 
     mpc.ctl.conf.warmstart = True
 
     x_ini = np.zeros(mpc.size.states)
@@ -99,15 +99,12 @@ def comp_cost(mpc):
     return 0.5 * stage_cost
 
 def comp_violations(mpc):
-    tol = 1e-9
+    tol = 1e-6
     x = mpc.sim.data.x[1,:]
     e_ub = mpc.constr.e_ub[0]
     z = 0
-    #rint("x", x)
-    #rint("e", e_ub)
     for j in mpc.sim.data.t:
         if (x[j]-e_ub) > tol:
-            print("viol")
             z +=1
     return z
 
@@ -132,4 +129,4 @@ def plot_results(data):
     return
 
 if __name__ == '__main__':
-    main_C()
+    main()

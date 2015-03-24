@@ -14,9 +14,11 @@
 
 void TIM2_Configuration(void)
 {
+	/* use 1680 to get time 1 ms = 100 */
+	/* use 168 to get time 1 ms = 1000, this will overflow rather quickly */
  	RCC->APB1ENR |= RCC_APB1RSTR_TIM2RST;
         //TIM2->PSC=2400/2-1; /* used for 24MHz core frquency */
-	TIM2->PSC = 168/2-1; /* used for 168MHz core frquency */
+	TIM2->PSC = 1680/2-1; /* used for 168MHz core frquency */
 	TIM2->ARR = 65000;
 	TIM2->CR1 |= TIM_CR1_CEN;
 }
