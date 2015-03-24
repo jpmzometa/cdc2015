@@ -12,7 +12,10 @@
 #include "hal.h"
 #include "test.h"
 #include <mpc_const.h>
+
+#ifdef CMPC
 #include <pce.h>
+#endif
 
 /*
  * Console output.
@@ -101,15 +104,23 @@ void usr_intprint(int32_t *number)
  */
 void output_number(void *p, msg_t Time)
 {
+#ifdef CMPC
+    uint32_t _nx_ = PCE_NX;
+    uint32_t _hnu_ = PCE_HOR*1;
+#endif
+#ifdef CMPCNOM
+    uint32_t _nx_ = MPC_STATES;
+    uint32_t _hnu_ = MPC_HOR_INPUTS;
+#endif
 	chp = p;
-        int16_t i;
+        uint32_t i;
         extern real_t states[];
         extern real_t inputs[];
         extern int32_t k;
         usr_intprint(&k);
         usr_intprint(&Time);
-        for(i=0; i<PCE_NX; i++)
+        for(i=0; i<_nx_; i++)
           usr_fprint(&states[i]);
-        for(i=0; i<MPC_HOR_INPUTS; i++)
+        for(i=0; i<_hnu_; i++)
           usr_fprint(&inputs[i]);
 }

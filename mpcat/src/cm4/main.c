@@ -18,13 +18,16 @@
 #include <usertimer.h>
 #include <blinkout.h>
 #include <mpcctl.h>
+
+#ifdef CMPC
 #include <aircraftpcecvp.h>
 #include <aircraftpcecvpdata.h>
 #include <pce.h>
+#endif
 
 #define MPC_Thread_Space 32020
 #define Com_Thread_Space 2028
-#define MPC_Thread_Deadline 500 /* milliseconds */
+#define MPC_Thread_Deadline 100 /* milliseconds */
 //#define USER_BOTTOM /* uncomment to enable the function of user bottom */
 static WORKING_AREA(waThreadMpc, MPC_Thread_Space);
 static WORKING_AREA(waThreadCom, Com_Thread_Space);
@@ -35,10 +38,15 @@ Thread* ImThread;
 #ifdef AIRCRAFT
 extern struct aircraftpce_cvp cvp;
 real_t states[PCE_NX] = {0.0, 0.0, 0.0, -401.0, 0.0}; /* initial state */
+real_t inputs[PCE_HOR*1];
 enum {SIM_POINTS = 5};  /* this should match the value in rs.py */
 #endif
+#ifdef AIRCRAFTNOM
+real_t states[MPC_STATES] = {0.0, 0.0, 0.0, -401.0, 0.0}; /* initial state */
+real_t inputs[MPC_HOR_INPUTS];
+enum {SIM_POINTS = 60};  /* this should match the value in rs.py */
+#endif
 
-real_t inputs[PCE_HOR];
 int32_t k = 0;  /* simulation mark */
 
 #if 0
@@ -67,19 +75,19 @@ static msg_t ThreadMpc(void *arg) {
     uint16_t MTime = 0;
     /* periodical thread setting */
     time += MS2ST(MPC_Thread_Deadline);
+
+    /* send message to the print thread */
+    /* MTime contains the execution time of previous iteration */
+    chMsgSend(ImThread, (msg_t)MTime);
     /* Timer configure */
     TIM2_Configuration();
     /* Insert ms delay */
-#if 1
     /* Use this to check the time you are measuring is right 
      * chThdSleepMilliseconds(123);
      */
     mpcctl();
-#endif
     /* error compensate and unit transformation*/
     MTime = TIM2_Read(); 
-    /* send message to the print thread */
-    chMsgSend(ImThread, (msg_t)MTime);
     /* save the data into RAM */
 #if 0
     if(k<SIM_POINTS)

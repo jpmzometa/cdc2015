@@ -10,7 +10,6 @@
 #ifdef CMPC
 #include <aircraftpcecvp.h>
 #include <aircraftpcecvpdata.h>
-#include <aircraftpcemtxops.h>
 #include <pce.h>
 #endif
 
@@ -38,14 +37,6 @@ uint64_t get_time_stamp(void) {
 int main(void)
 {
   uint32_t i;
-#if 0
-extern real_t jac_eval[];
-extern real_t func_eval[];
-#endif
-
-
-
-/* start */
 
     FILE *fp;
     fp = fopen( "xutraj.csv", "w" );

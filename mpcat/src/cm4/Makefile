@@ -3,12 +3,14 @@
 # NOTE: Can be overridden externally.
 #
 CMPC = 1
-CVXGEN = 2
+CMPCNOM = 2
 AIRCRAFT = 11
 AIRCRAFTNOM= 12
 # Choose here your solver and system from the list above.
 # They influence the behaviour of mpcctl.mk, UDEFS,...
 MPCCTL_SOLVER = $(CMPC)
+MPCCTL_SYSTEM = $(AIRCRAFTNOM)
+MPCCTL_SOLVER = $(CMPCNOM)
 MPCCTL_SYSTEM = $(AIRCRAFTNOM)
 
 # Compiler options here.
@@ -207,20 +209,16 @@ ifeq ($(MPCCTL_SYSTEM),$(AIRCRAFT))
 	UDEFS += -DAIRCRAFT
 endif
 
-ifeq ($(MPCCTL_SYSTEM),$(LEGOARM))
-	UDEFS += -DLEGOARM
-endif
-
-ifeq ($(MPCCTL_SYSTEM),$(GTCAR1))
-	UDEFS += -DGTCAR1
-endif
-
 ifeq ($(MPCCTL_SOLVER),$(CMPC))
 	UDEFS += -DCMPC
 endif
 
-ifeq ($(MPCCTL_SOLVER),$(CVXGEN))
-	UDEFS += -DCVXGEN
+ifeq ($(MPCCTL_SYSTEM),$(AIRCRAFTNOM))
+	UDEFS += -DAIRCRAFTNOM
+endif
+
+ifeq ($(MPCCTL_SOLVER),$(CMPCNOM))
+	UDEFS += -DCMPCNOM
 endif
 
 # Define ASM defines here

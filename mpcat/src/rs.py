@@ -10,11 +10,10 @@ class System(object):
         self.hor_inputs = hor_inputs
         self.samples = samples
 
-aircraft = System(5, 5, 5)
-aircraft_pce = System(5, 5, 5)
+aircraft = System(5, 5, 60)
 #ystem = aircraft
 #ystem = legoarm
-system = aircraft_pce
+system = aircraft
 #path.append('../mpcctl/systems/' + SYSTEM)
 
 infoWriter = csv.writer(open('simdata.csv', 'w', newline=''), quoting=csv.QUOTE_MINIMAL)
