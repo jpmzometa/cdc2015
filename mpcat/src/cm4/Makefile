@@ -9,9 +9,9 @@ AIRCRAFTNOM= 12
 # Choose here your solver and system from the list above.
 # They influence the behaviour of mpcctl.mk, UDEFS,...
 MPCCTL_SOLVER = $(CMPC)
-MPCCTL_SYSTEM = $(AIRCRAFTNOM)
-MPCCTL_SOLVER = $(CMPCNOM)
-MPCCTL_SYSTEM = $(AIRCRAFTNOM)
+MPCCTL_SYSTEM = $(AIRCRAFT)
+#PCCTL_SOLVER = $(CMPCNOM)
+#PCCTL_SYSTEM = $(AIRCRAFTNOM)
 
 # Compiler options here.
 ifeq ($(USE_OPT),)

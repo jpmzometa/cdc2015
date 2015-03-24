@@ -36,9 +36,9 @@ Thread* ImThread;
 
 /* current states of the emulated system */
 #ifdef AIRCRAFT
-extern struct aircraftpce_cvp cvp;
+struct aircraftpce_cvp cvp;
 real_t states[PCE_NX] = {0.0, 0.0, 0.0, -400.0, 0.0}; /* initial state */
-real_t inputs[PCE_HOR*1];
+real_t inputs[PCE_HOR*PCE_NU];
 enum {SIM_POINTS = 5};  /* this should match the value in rs.py */
 #endif
 #ifdef AIRCRAFTNOM
@@ -69,7 +69,7 @@ struct mpc_data
 static msg_t ThreadMpc(void *arg) {
 
   (void)arg;
-  systime_t time = chTimeNow(); 
+  systime_t time = chTimeNow();
   chRegSetThreadName("TMeasure");
   while (TRUE) {
     static uint16_t MTime;
@@ -82,24 +82,13 @@ static msg_t ThreadMpc(void *arg) {
     /* Timer configure */
     TIM2_Configuration();
     /* Insert ms delay */
-    /* Use this to check the time you are measuring is right 
+    /* Use this to check the time you are measuring is right
      * chThdSleepMilliseconds(123);
      */
+    /* CALL MPC CONTROL */
     mpcctl();
     /* error compensate and unit transformation*/
-    MTime = TIM2_Read(); 
-    /* save the data into RAM */
-#if 0
-    if(k<SIM_POINTS)
-    {
-      for(i=0;i<PCE_NX;i++) {
-        mpc_save[k].states[i] = states[i];
-	      }
-      for(i=0;i<PCE_HOR;i++){
-        mpc_save[k].inputs[i] = inputs[i];
-      }
-    }
-#endif
+    MTime = TIM2_Read();
     k++;
     chThdSleepUntil(time);
   }

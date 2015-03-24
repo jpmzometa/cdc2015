@@ -43,7 +43,7 @@ int main(void)
     fp = fopen( "xutraj.csv", "w" );
 #ifdef CMPC
     uint32_t _nx_ = PCE_NX;
-    uint32_t _hnu_ = PCE_HOR*1;
+    uint32_t _hnu_ = PCE_HOR*PCE_NU;
 #endif
 #ifdef CMPCNOM
     uint32_t _nx_ = MPC_STATES;
@@ -69,6 +69,7 @@ int main(void)
             fprintf(fp, "%f, ", ctl.u_opt[i]);
         }
 
+/* CALL MPC CONTROL */
 	t1 = get_time_stamp();
         mpcctl();
 	t2 = get_time_stamp();
