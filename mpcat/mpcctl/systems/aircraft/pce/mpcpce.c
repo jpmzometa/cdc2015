@@ -35,11 +35,14 @@ void mpcpce_solve_problem(struct mpc_ctl *ctl, struct aircraftpce_cvp *cvp, real
         pce_get_prediction(x_pred, u_sequence, cvp->prb->x_k->data, A_sys, B_sys);
         pce_jacobian_function_reduced(func_eval, jac_eval, x_pred);
         aircraftpce_cvp_form_problem(cvp);
+#if 0
         aircraftpce_mtx_multiply_mtx_mtx(E, jac_eval, &(cvp->prb->V->data[PCE_NXE*(PCE_HOR*1)]), PCE_JAC_ROWS,
             PCE_JAC_COLS, cvp->prb->V->cols);
-    /* v_ub contains -A*x0 */
+#endif
         mtx_bdiag2cols(bdiag_jac, jac_eval, PCE_NCX, PCE_NXE, PCE_HOR);
-
+        mtx_multiply_block_diagonal(E, bdiag_jac, &(cvp->prb->V->data[PCE_NXE*(PCE_HOR*PCE_NU)]), PCE_NCX,
+            PCE_NXE, PCE_NU*PCE_HOR, PCE_HOR);
+    /* v_ub contains -A*x0 */
         mtx_multiply_block_diagonal(JAx0, bdiag_jac, &(cvp->prb->v_ub->data[PCE_NXE]), PCE_NCX, PCE_NXE, 1, PCE_HOR);
         mtx_multiply_block_diagonal(JXpred, bdiag_jac, &(x_pred[PCE_NXE]), PCE_NCX, PCE_NXE, 1, PCE_HOR);
         aircraftpce_mtx_add(JXpred_JAx0, JXpred, JAx0, PCE_JAC_ROWS, 1);

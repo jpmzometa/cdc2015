@@ -4,6 +4,7 @@
 enum {
     PCE_P = 5, // This is the number of elements of the expansion
     PCE_NX = 5, // Number of states of the original system
+    PCE_NU = 1, // Number of inputs of the original system
     PCE_HOR = 5, // Prediction horizon
     PCE_NCX = 2, // number of state constraints
     PCE_NXE = PCE_NX * (PCE_P+1),
