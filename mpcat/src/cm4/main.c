@@ -37,12 +37,12 @@ Thread* ImThread;
 /* current states of the emulated system */
 #ifdef AIRCRAFT
 extern struct aircraftpce_cvp cvp;
-real_t states[PCE_NX] = {0.0, 0.0, 0.0, -401.0, 0.0}; /* initial state */
+real_t states[PCE_NX] = {0.0, 0.0, 0.0, -400.0, 0.0}; /* initial state */
 real_t inputs[PCE_HOR*1];
 enum {SIM_POINTS = 5};  /* this should match the value in rs.py */
 #endif
 #ifdef AIRCRAFTNOM
-real_t states[MPC_STATES] = {0.0, 0.0, 0.0, -401.0, 0.0}; /* initial state */
+real_t states[MPC_STATES] = {0.0, 0.0, 0.0, -400.0, 0.0}; /* initial state */
 real_t inputs[MPC_HOR_INPUTS];
 enum {SIM_POINTS = 60};  /* this should match the value in rs.py */
 #endif
@@ -72,7 +72,7 @@ static msg_t ThreadMpc(void *arg) {
   systime_t time = chTimeNow(); 
   chRegSetThreadName("TMeasure");
   while (TRUE) {
-    uint16_t MTime = 0;
+    static uint16_t MTime;
     /* periodical thread setting */
     time += MS2ST(MPC_Thread_Deadline);
 
