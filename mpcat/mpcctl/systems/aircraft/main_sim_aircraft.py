@@ -16,7 +16,7 @@ def store_current_step_data(mpc, data, xk, uk, k):
 
 def main():
     steps = 60
-    runs = 1000
+    runs = 100
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
 # configure the controller
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
@@ -51,7 +51,7 @@ def main():
 
 def main_C():
     steps = 60
-    runs = 1000
+    runs = 100
     mpc = muaompc.ltidt.setup_mpc_problem('sys_aircraft')
     mpc.sim.regulate_ref(steps, np.zeros(mpc.size.states))
     data_base = deepcopy(mpc.sim.data)

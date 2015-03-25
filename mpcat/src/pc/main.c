@@ -134,6 +134,16 @@ int main(void)
          fprintf(fp, "%f,", cvp.pmetric[AIRCRAFTPCE_G]->fac[AIRCRAFTPCE_X_K]->data[i]);
     }
 	 fprintf(fp, "]\n");
+	 fprintf(fp, "HoL=[");
+    for (i=0; i<(25); i++) {
+         fprintf(fp, "%f,",ctl.qpx->HoL[i]);
+    }
+	 fprintf(fp, "]\n");
+	 fprintf(fp, "gxoL=[");
+    for (i=0; i<(5); i++) {
+         fprintf(fp, "%f,",ctl.qpx->gxoL[i]);
+    }
+	 fprintf(fp, "]\n");
 
 	 fclose(fp);
 #endif

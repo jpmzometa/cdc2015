@@ -10,12 +10,12 @@ AIRCRAFTNOM = 12
 # They influence the behaviour of mpcctl.mk, UDEFS,...
 MPCCTL_SOLVER = $(CMPC)
 MPCCTL_SYSTEM = $(AIRCRAFT)
-MPCCTL_SOLVER = $(CMPCNOM)
-MPCCTL_SYSTEM = $(AIRCRAFTNOM)
+#PCCTL_SOLVER = $(CMPCNOM)
+#PCCTL_SYSTEM = $(AIRCRAFTNOM)
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -Os -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
 endif
 
 # C specific options here (added to USE_OPT).
