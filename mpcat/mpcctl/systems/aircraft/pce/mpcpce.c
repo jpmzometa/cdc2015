@@ -15,7 +15,7 @@ void mpcpce_solve_problem(struct mpc_ctl *ctl, struct aircraftpce_cvp *cvp, real
 
     real_t x_pred[PCE_NXE*(PCE_HOR+1)];
     real_t E[PCE_JAC_ROWS*PCE_HOR];
-    real_t bdiag_jac[PCE_NX*PCE_JAC_COLS];
+    real_t bdiag_jac[PCE_NCX*PCE_JAC_COLS];
     real_t JXpred[PCE_JAC_ROWS];
     real_t JAx0[PCE_JAC_ROWS];
     real_t JXpred_JAx0[PCE_JAC_ROWS];

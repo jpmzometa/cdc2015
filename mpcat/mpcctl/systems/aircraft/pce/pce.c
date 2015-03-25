@@ -76,13 +76,13 @@ void pce_jacobian_function_reduced(real_t func_eval[], real_t jac_eval[], real_t
 		}
 		// Add the function value and the jacobian element only if there is a constraint (states [1] and [4])
 		if (i == 1 || i == 4){
-			func_eval[offset] = mean + kappa_e * sqrt(var);
+			func_eval[offset] = mean + kappa_e * sqrtf(var);
 			for (l = 0; l < p+1; l++){
 				if (l == 0){
 					jac_eval[offset*n_cols + l + (offset_col) * (p+1)] = 1; // The derivative with respect to the first coefficient is one because it is the mean
 				}
 				else{
-					jac_eval[offset*n_cols + l + (offset_col) * (p+1)] = x[index_mean + l]* PHI_VAR[l-1] * 1/sqrt(var);
+					jac_eval[offset*n_cols + l + (offset_col) * (p+1)] = x[index_mean + l]* PHI_VAR[l-1] * 1/sqrtf(var);
 				}
 			}
 			offset = offset + 1;
